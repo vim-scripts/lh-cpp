@@ -3,7 +3,7 @@
 " Author:		Luc Hermitte <MAIL:hermitte at free.fr>
 " 			<URL:http://hermitte.free.fr/vim/>
 "
-" Last Update:		21st jul 2002
+" Last Update:		28th Jul 2003
 "
 " Dependencies:		a.vim (Alternate files)
 " 			VIM >= 6.00 only
@@ -231,8 +231,8 @@ function! s:Cpp_newHeaderFile(name) " {{{
 
   " Includes
   call s:Cpp_bigLine( s:header_includes_text )
-  if exists('*Brkt_Mark') 
-    silent put = '// ' . Brkt_Mark('Includes') 
+  if exists('*Marker_Txt') 
+    silent put = '// ' . Marker_Txt('Includes') 
   endif
   call s:Cpp_emptyLine( 2 )
 
@@ -285,7 +285,9 @@ endfunction
 " 		of type <type>
 " Returns:	The line of the section / -1 if no found		
 function! s:Cpp_TestInlineFile(filename,type,class)
-  if exists('g:mt_jump_to_first_markers') && g:mt_jump_to_first_markers
+  if exists('g:mu_template') && 
+	\ (!exists('g:mt_jump_to_first_markers') || g:mt_jump_to_first_markers)
+    " NB: g:mt_jump_to_first_markers is true by default
     let mt = g:mt_jump_to_first_markers
     let g:mt_jump_to_first_markers = 0
   endif
@@ -350,7 +352,9 @@ function! s:ReachInlinesZone(type)
     exe "normal! 2\<down>"
     return
   else
-    if exists('g:mt_jump_to_first_markers') && g:mt_jump_to_first_markers
+    if exists('g:mu_template') && 
+	  \(!exists('g:mt_jump_to_first_markers') || g:mt_jump_to_first_markers)
+      " NB: g:mt_jump_to_first_markers is true by default
       let mt = g:mt_jump_to_first_markers
       let g:mt_jump_to_first_markers = 0
     endif
@@ -428,6 +432,7 @@ function! Cpp_ReachInlinePart(class)
 "---
 "   2- Othewise, build/add the part in the correct file
   exe ':silent AS ' . s:Cpp_fileExtension(1-i)
+  " :CheckOptions
   call s:AddInlinePart(a:class, 1-i)
 endfunction
 " }}}

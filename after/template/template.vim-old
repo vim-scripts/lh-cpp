@@ -2,16 +2,16 @@
 "=============================================================================
 " File:		¡expand("%")¡
 " Author:	¡g:author¡
-" Version:	«version»
+" Version:	¡Marker_Txt("version")¡
 " Created:	¡DateStamp()¡
 " Last Update:	¡DateStamp()¡
 "------------------------------------------------------------------------
-" Description:	«description»
+" Description:	¡Marker_Txt("description")¡
 " 
 "------------------------------------------------------------------------
-" Installation:	«install details»
-" History:	«history»
-" TODO:		«missing features»
+" Installation:	¡Marker_Txt("install details")¡
+" History:	¡Marker_Txt("history")¡
+" TODO:		¡Marker_Txt("missing features")¡
 "=============================================================================
 "
 ¿let s:ftplug = confirm("Is this script an ftplugin ?", "&Yes\n&No", 2) == 1 ¿
@@ -25,7 +25,7 @@
 ¡s:ftplug ? '"' : "" ¡
 ¿if s:ftplug | exe "normal a\"\r\<esc>73a-\<esc>D" | endif ¿
 ¡s:ftplug ? '"' : "" ¡
-¡s:ftplug ? "«Buffer relative definitions»" : "" ¡
+¡s:ftplug ? Marker_Txt("Buffer relative definitions") : "" ¡
 ¡s:ftplug ? " " : "" ¡
 " 
 ¿if s:ftplug | exe "normal a\"\r\<esc>78a=\<esc>D" | endif ¿
@@ -39,7 +39,7 @@ let g:loaded_¡s:fn¡ = 1
 "
 "------------------------------------------------------------------------
 "
-«Global definitions -- like functions»
+¡Marker_Txt("Global definitions -- like functions")¡
 
 "------------------------------------------------------------------------
 let &cpo=s:cpo_save

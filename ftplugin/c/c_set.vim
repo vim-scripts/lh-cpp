@@ -1,9 +1,9 @@
 " ========================================================================
 " File:			c_set.vim
-" Author:		Luc Hermitte <MAIL:hermitte at free.fr>
+" Author:		Luc Hermitte <MAIL:hermitte {at} free {dot} fr>
 " 			<URL:http://hermitte.free.fr/vim/>
 "
-" Last Update:		30th jul 2002
+" Last Update:		18th Feb 2004
 "
 " Purpose:		ftplugin for C (-like) programming
 "
@@ -29,12 +29,18 @@ let b:loaded_local_c_settings = 1
   set cpo&vim
 
 " ------------------------------------------------------------------------
+" Includes {{{
+" ------------------------------------------------------------------------
+source $VIMRUNTIME/ftplugin/c.vim
+let b:did_ftplugin = 1
+" }}}
+" ------------------------------------------------------------------------
 " Options to set {{{
 " ------------------------------------------------------------------------
 setlocal formatoptions=croql
 setlocal cindent
 setlocal define=^\(#\s*define\|[a-z]*\s*const\s*[a-z]*\)
-setlocal comments=sr:/*,mb:*,el:*/
+setlocal comments=sr:/*,mb:*,exl:*/,://
 setlocal cinoptions=g0,t0
 setlocal isk+=#		" so #if is considered as a keyword, etc
 
@@ -52,9 +58,11 @@ if !exists('maplocalleader')
   let maplocalleader = ','
 endif
 
+runtime syntax/doxygen.vim
+
 " C Doc {{{
-if !exists('*s:SearchTeXDocFolder')
-  function! s:SearchTeXDocFolder(filename)
+if !exists('*s:SearchCDocFolder')
+  function! s:SearchCDocFolder(filename)
     let f = substitute(fnamemodify(a:filename, ':p:h'), 
 	  \ '[\\/]doc[\\/]\=$', '','')
     if &runtimepath !~ escape(f, '\')
@@ -63,14 +71,14 @@ if !exists('*s:SearchTeXDocFolder')
     endif
   endfunction
 endif
-command! -buffer -nargs=1 SearchTeXDocFolder	
-      \ :call <SID>SearchTeXDocFolder(<q-args>)
+command! -buffer -nargs=1 SearchCDocFolder	
+      \ :call <SID>SearchCDocFolder("<args>")
 if exists(':SearchInRuntime')
-  SearchInRuntime! SearchTeXDocFolder ftplugin/c/doc/*.txt
+  SearchInRuntime! SearchCDocFolder ftplugin/c/doc/*.txt
 else
   let f = glob(expand('<sfile>:p:h').'/doc/*.txt')
   if strlen(f)
-    :SearchTeXDocFolder f
+    :SearchCDocFolder f
   endif
 endif
 " C Doc }}}
@@ -137,93 +145,87 @@ endif
 " Control structures {{{
 " ------------------------------------------------------------------------
 "
+command! PopSearch :call histdel('search', -1)| let @/=histget('search',-1)
+
 " --- if -----------------------------------------------------------------
 "--if    insert "if" statement
-"  inoremap <buffer> if<space> <C-R>=Def_Map("if ",
-  Iabbr <buffer> if <C-R>=Def_Abbr("if ",
-      \ '\<c-f\>if () {\<cr\>}\<esc\>?)\<cr\>i',
-      \ '\<c-f\>if () {\<cr\>¡mark!\<cr\>}¡mark!\<esc\>?)\<cr\>i')<cr>
+  Iabbr <buffer> if <C-R>=Def_AbbrC("if ",
+      \ '\<c-f\>if () {\<cr\>!mark!\<cr\>}!mark!\<esc\>?)\<cr\>:PopSearch\<cr\>i')<cr>
 "--,if    insert "if" statement
   vnoremap <buffer> <LocalLeader>if 
-	\ :call MapAroundVisualLines('if () {','}', 1, 1)<cr>
+	\ :call InsertAroundVisual('if () {','}', 1, 1)<cr>gV
 	" \ ><esc>`>a<cr>}<c-t><esc>`<iif<c-V> () {<c-f><cr><esc>?(<cr>a
       nmap <buffer> <LocalLeader>if V<LocalLeader>if
 
 "--elif  insert else clause of if statement with following if statement
-  Iabbr <buffer> elif <C-R>=Def_Abbr("elif ",
-      \ '\<c-f\>else if () {\<cr\>}\<esc\>?)\<cr\>i',
-      \ '\<c-f\>else if () {\<cr\>¡mark!\<cr\>}¡mark!\<esc\>?)\<cr\>i')<cr>
+  Iabbr <buffer> elif <C-R>=Def_AbbrC("elif ",
+      \ '\<c-f\>else if () {\<cr\>!mark!\<cr\>}!mark!\<esc\>?)\<cr\>:PopSearch\<cr\>i')<cr>
 "--,elif  insert else clause of if statement with following if statement
   vnoremap <buffer> <LocalLeader>elif 
-	\ :call MapAroundVisualLines('else if () {','}', 1, 1)<cr>
+	\ :call InsertAroundVisual('else if () {','}', 1, 1)<cr>gV
 	" \ ><esc>`>a<cr>}<c-t><esc>`<ielse if () {<c-f><cr><esc>?(<cr>a
       nmap <buffer> <LocalLeader>elif V<LocalLeader>elif
 
 "--else  insert else clause of if statement
-  Iabbr <buffer> else <C-R>=Def_Abbr("else ",
-      \ '\<c-f\>else {\<cr\>}\<esc\>O',
-      \ '\<c-f\>else {\<cr\>}¡mark!\<esc\>O')<cr>
+  Iabbr <buffer> else <C-R>=Def_AbbrC("else ",
+      \ '\<c-f\>else {\<cr\>}!mark!\<esc\>O')<cr>
 "--,else  insert else clause of if statement
   vnoremap <buffer> <LocalLeader>else 
-	\ :call MapAroundVisualLines('else {','}', 1, 1)<cr>
+	\ :call InsertAroundVisual('else {','}', 1, 1)<cr>gV
 	" \ ><esc>`>a<cr>}<c-t><esc>`<ielse {<c-f><cr><esc>?{<cr>
       nmap <buffer> <LocalLeader>else V<LocalLeader>else
 
 "--- for ----------------------------------------------------------------
 "--for   insert "for" statement
-  Iabbr <buffer> for <C-R>=Def_Abbr("for ",
-      \ '\<c-f\>for (;;) {\<cr\>}\<esc\>?(\<cr\>a',
-      \ '\<c-f\>for (;¡mark!;¡mark!) {\<cr\>¡mark!\<cr\>}¡mark!\<esc\>?(\<CR\>a')<cr>
+  Iabbr <buffer> for <C-R>=Def_AbbrC("for ",
+      \ '\<c-f\>for (;!mark!;!mark!) {\<cr\>!mark!\<cr\>}!mark!\<esc\>?)\<CR\>:PopSearch\<cr\>%a')<cr>
 "--,for   insert "for" statement
   vnoremap <buffer> <LocalLeader>for 
-	\ :call MapAroundVisualLines('for (;;) {','}', 1, 1)<cr>
+	\ :call InsertAroundVisual('for (;;) {','}', 1, 1)<cr>gV
 	" \ ><esc>`>a<cr>}<c-t><esc>`<ifor (;;) {<c-f><cr><esc>?(<cr>a
       nmap <buffer> <LocalLeader>for V<LocalLeader>for
 
 "--- while --------------------------------------------------------------
 "--while insert "while" statement
-  Iabbr <buffer> while <C-R>=Def_Abbr("while ",
-      \ '\<c-f\>while () {\<cr\>}\<esc\>?(\<cr\>a',
-      \ '\<c-f\>while () {\<cr\>¡mark!\<cr\>}¡mark!\<esc\>?(\<CR\>a')<cr>
+  Iabbr <buffer> while <C-R>=Def_AbbrC("while ",
+      \ '\<c-f\>while () {\<cr\>!mark!\<cr\>}!mark!\<esc\>?)\<CR\>:PopSearch\<cr\>i')<cr>
 "--,while insert "while" statement
   vnoremap <buffer> <LocalLeader>while 
-	\ :call MapAroundVisualLines('while () {','}', 1, 1)<cr>
+	\ :call InsertAroundVisual('while () {','}', 1, 1)<cr>gV
 	" \ ><esc>`>a<cr>}<c-t><esc>`<iwhile () {<c-f><cr><esc>?(<cr>a
       nmap <buffer> <LocalLeader>while V<LocalLeader>while
 
 "--- switch -------------------------------------------------------------
 "--switch insert "switch" statement
-  Iabbr <buffer> switch <C-R>=Def_Abbr("switch ",
-      \ '\<c-f\>switch () {\<cr\>}\<esc\>?(\<cr\>a',
-      \ '\<c-f\>switch () {\<cr\>¡mark!\<cr\>}¡mark!\<esc\>?(\<CR\>a')<cr>
+  Iabbr <buffer> switch <C-R>=Def_AbbrC("switch ",
+      \ '\<c-f\>switch () {\<cr\>!mark!\<cr\>}!mark!\<esc\>?)\<CR\>:PopSearch\<cr\>i')<cr>
 "--,switch insert "switch" statement
   vnoremap <buffer> <LocalLeader>switch 
-	\ :call MapAroundVisualLines("switch () {\ncase __:",'}', 1, 1)<cr>
+	\ :call InsertAroundVisual("switch () {\ncase __:",'}', 1, 1)<cr>gV
 	" \ ><esc>`>a<cr>}<c-t><esc>`<iswitch () {<c-f><cr>case __:<c-d><cr><esc>?(<cr>a
       nmap <buffer> <LocalLeader>switch V<LocalLeader>switch
 
 "--- main ---------------------------------------------------------------
 "--Ymain  insert "main" routine
-  Iabbr  <buffer> Ymain  int main (int argc, char **argv)<cr>{
+  Iabbr  <buffer> Ymain  int main (int argc, char **argv!jump-and-del!<cr>{
 "--,main  insert "main" routine
   map <buffer> <LocalLeader>main  iint main (int argc, char **argv)<cr>{
 
 
 " --- return -------------------------------------------------------------
 "-- <m-r> insert "return ;"
-  inoremap <buffer> <m-r> <c-r>=BuildMapSeq('return;¡mark!\<esc\>F;i')<cr>
+  inoremap <buffer> <m-r> <c-r>=BuildMapSeq('return;!mark!\<esc\>F;i')<cr>
 
 " --- ?: -------------------------------------------------------------
 "-- ?: insert "return ;"
-  inoremap <buffer> ?: <c-r>=BuildMapSeq('() ?¡mark!:¡mark!\<esc\>F(a')<cr>
+  inoremap <buffer> ?: <c-r>=BuildMapSeq('() ?!mark!:!mark!\<esc\>F(a')<cr>
 
 "--- Commentaires automatiques -------------------------------------------
 "--/* insert /* <curseur>
 "             */
   if &syntax !~ "^\(cpp\|java\)$"
-    inoreab <buffer> /*  <c-r>=Def_Abbr('/*',
-	  \ '/*\<cr\>\<BS\>/\<up\>\<end\>',
-	  \ '/*\<cr\>\<BS\>/¡mark!\<up\>\<end\>')<cr>
+    inoreab <buffer> /*  <c-r>=Def_AbbrC('/*',
+	  \ '/*\<cr\>\<BS\>/!mark!\<up\>\<end\>')<cr>
   endif
 
 "--/*- insert /*-----[  ]-------*/
@@ -244,7 +246,7 @@ endif
 let g:loaded_c_set_vim = 1
 
 " exported function !
-function! Def_Map(key,expr1,expr2)
+function! Def_MapC(key,expr1,expr2)
   if exists('b:usemarks') && b:usemarks
     return "\<c-r>=MapNoContext2('".a:key."',BuildMapSeq('".a:expr2."'))\<cr>"
     " return "\<c-r>=MapNoContext2('".a:key."',BuildMapSeq(\"".a:expr2."\"))\<cr>"
@@ -254,16 +256,24 @@ function! Def_Map(key,expr1,expr2)
   endif
 endfunction
 
-function! Def_Abbr(key,expr1,expr2)
+function! Def_AbbrC(key,expr)
   if exists('b:usemarks') && b:usemarks
-    return "\<c-r>=MapNoContext('".a:key."',BuildMapSeq('".a:expr2."'))\<cr>"
-    " return "\<c-r>=MapNoContext('".a:key."',BuildMapSeq(\"".a:expr2."\"))\<cr>"
+    let rhs = "BuildMapSeq('".a:expr."')"
   else
-    return "\<c-r>=MapNoContext('".a:key."', '".a:expr1."')\<cr>"
-    " return "\<c-r>=MapNoContext('".a:key."', \"".a:expr1."\")\<cr>"
+    let rhs = "'".substitute(a:expr, '!mark!', '', 'g')."'"
   endif
+  if exists('g:c_nl_before_bracket') && g:c_nl_before_bracket
+    let rhs = substitute(rhs, '\(BuildMapSeq\)\@<!(', '\\<cr\\>\0', 'g')
+  endif
+  if exists('g:c_nl_before_curlyB') && g:c_nl_before_curlyB
+    let rhs = substitute(rhs, '{', '\\<cr\\>\0', 'g')
+  endif
+  let g:toto = "\<c-r>=MapNoContext('".a:key."',". rhs . ")\<cr>"
+  return "\<c-r>=MapNoContext('".a:key."',". rhs . ")\<cr>"
 endfunction
-  let &cpo = s:cpo_save
+
+
 " }}}
+  let &cpo = s:cpo_save
 "=============================================================================
 " vim600: set fdm=marker:

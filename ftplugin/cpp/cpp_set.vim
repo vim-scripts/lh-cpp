@@ -3,7 +3,7 @@
 " Author:		Luc Hermitte <MAIL:hermitte at free.fr>
 " 			<URL:http://hermitte.free.fr/vim/>
 "
-" Last Update:		21st jul 2002
+" Last Update:		16th Mar 2004
 "
 " Purpose:		ftplugin for C++ programming
 "
@@ -38,7 +38,9 @@ let b:loaded_local_cpp_settings = 1
 " ------------------------------------------------------------------------
 " VIM Includes
 " ------------------------------------------------------------------------
-runtime! ftplugin/c/*.vim 
+source $VIMRUNTIME/ftplugin/cpp.vim
+let b:did_ftplugin = 1
+" runtime! ftplugin/c/*.vim 
 " --> need to be sure that some definitions are loaded first!
 "     like maplocaleader.
 
@@ -53,13 +55,17 @@ runtime! ftplugin/c/*.vim
 "  setlocal formatoptions=croql
 "  setlocal cindent
 "
-"  Accepted comments are :
-" /*     /**       /**@
-"  *       *        *  
-"  */      */       */
-setlocal comments=f://,sl1b:/**,mb:*,el:*/,sr:/*,mb:*,el:*/
 setlocal cinoptions=g0,t0,h1s
 
+" browse filter
+if has("gui_win32") 
+  let b:browsefilter = 
+	\ "C++ Header Files (*.hpp *.h++)\t*.hpp;*.h++\n" .
+	\ "C++ Source Files (*.cpp *.c++)\t*.cpp;*.c++\n" .
+	\ "C Header Files (*.h)\t*.h\n" .
+	\ "C Source Files (*.c)\t*.c\n" .
+	\ "All Files (*.*)\t*.*\n"
+endif
 " ------------------------------------------------------------------------
 " Some C++ abbreviated Keywords
 " ------------------------------------------------------------------------
@@ -72,24 +78,31 @@ Iabbr <buffer> tpl template <><Left>
 inoreab <buffer> vir virtual
 
 inoremap <buffer> <m-s> std::
+inoremap <buffer> <m-b> boost::
+
+
+"--- namespace ----------------------------------------------------------
+"--,ns insert "namespace" statement
+  vnoremap <buffer> <LocalLeader>ns 
+	\ :call InsertAroundVisual('namespace {','}', 1, 1)<cr>gV
+      nmap <buffer> <LocalLeader>ns V<LocalLeader>ns
 
 "--- try ----------------------------------------------------------------
 "--try insert "try" statement
-  Iabbr <buffer> try <C-R>=Def_Abbr("try ",
-	\ '\<c-f\>try {\<cr\>} catch () {\<cr\>}\<up\>\<esc\>O',
-	\ '\<c-f\>try {\<cr\>} catch (¡mark!) {¡mark!\<cr\>}¡mark!\<esc\>'
-	\ .'?try\<cr\>o')<CR>
+	" \ .'?try\<cr\>o')<CR>
+  Iabbr <buffer> try <C-R>=Def_AbbrC("try ",
+	\ '\<c-f\>try {\<cr\>} catch (!mark!) {!mark!\<cr\>}!mark!\<esc\>'
+	\ .'?try\<cr\>:PopSearch\<cr\>o')<CR>
 "--,try insert "try - catch" statement
   vnoremap <buffer> <LocalLeader>try 
-	\ :call MapAroundVisualLines('try {',"} catch () {\n}", 1, 1)<cr>
+	\ :call InsertAroundVisual('try {',"} catch () {\n}", 1, 1)<cr>gV
 	" \ ><esc>`>a<cr>} catch () {<c-t><cr>}<esc>`<itry {<c-f><cr><esc>/(<cr>a
       nmap <buffer> <LocalLeader>try V<LocalLeader>try
 
 "--- catch --------------------------------------------------------------
 "--catch insert "catch" statement
-  Iabbr <buffer> catch <C-R>=Def_Abbr("catch ",
-	\ '\<c-f\>catch () {\<cr\>}\<esc\>?(?\<cr\>a',
-	\ '\<c-f\>catch () {¡mark!\<cr\>}¡mark!\<esc\>?(\<cr\>a')<CR>
+  Iabbr <buffer> catch <C-R>=Def_AbbrC("catch ",
+	\ '\<c-f\>catch () {!mark!\<cr\>}!mark!\<esc\>?)\<cr\>:PopSearch\<cr\>i')<CR>
 
 
 " ------------------------------------------------------------------------
@@ -99,13 +112,13 @@ inoremap <buffer> <m-s> std::
 " /**       inserts /** <cursor>
 "                    */
 " but only outside the scope of C++ comments and strings
-  inoremap <buffer> /**  <c-r>=Def_Map('/**',
-	\ '/** \<cr\>\<BS\>/\<up\>\<end\>',
-	\ '/** \<cr\>\<BS\>/¡mark!\<up\>\<end\>')<cr>
-" /*<space> inserts /**<cursor>*/
-  inoremap <buffer> /*<space>  <c-r>=Def_Map('/* ',
+  inoremap <buffer> /**  <c-r>=Def_MapC('/**',
+	\ '/**\<cr\>\<BS\>/\<up\>\<end\> ',
+	\ '/**\<cr\>\<BS\>/!mark!\<up\>\<end\> ')<cr>
+" /*<space> inserts /** <cursor>*/
+  inoremap <buffer> /*<space>  <c-r>=Def_MapC('/* ',
 	\ '/** */\<left\>\<left\>',
-	\ '/** */¡mark!\<esc\>F*i')<cr>
+	\ '/** */!mark!\<esc\>F*i')<cr>
 
 " ------------------------------------------------------------------------
 " std oriented stuff

@@ -3,22 +3,26 @@
 "      the v1.09 fixed the directory name used to store the files.
 "                      the filename resolution for win9x
 "                FixDname() has been moved to another file.
+"      the v1.10 added support for 'map <silent> ... ...'
+"      the v1.11 has been updated to match the last version of FixDName()
+"      the v1.12 uses normal! ; things changed into Trigger_File() in order to
+"                have less possible errors.
 "===========================================================================
 " Vim script file
 "
-" File:		Triggers.vim -- v1.09
-" Author:	Luc Hermitte <EMAIL:hermitte at free.fr>
+" File:		Triggers.vim -- v1.12
+" Author:	Luc Hermitte <EMAIL:hermitte {at} free {dot} fr>
 " 		<URL:http://hermitte.free.fr/vim/>
-" Last Update:	28th aug 2002
+" Last Update:	25th Sep 2003
 "
 " Purpose:	Help to map a sequence of keys to activate and desactivate
 " 		either a mapping, a setting or an abbreviation.
 "               
-" Remarks: {{{
+" Remarks:      {{{
 "  * You may have to customize Trigger_File(<funcname>) in regards of your
 "    installation
 "    }}}
-" Exemples: {{{
+" Examples:     {{{
 "  * |call Trigger_Define( '<F7>', 'set ai' )
 "    When pressing <F7> a first time, 'set ai!' is executed. Pressing <F7>
 "    a second time executes 'set ai'. Of course, for sets, it is not really
@@ -41,11 +45,18 @@
 "    }}}
 "
 " Inspiration:	buffoptions.vim
-" Deps:		fileuptodate.vim, ensure_path.vim, fix_d_name.vim
+" Deps:		fileuptodate.vim, and
+" 		(ensure_path.vim, fix_d_name.vim) or system_utils.vim
 "
-" TODO:		Support menus, setlocal, commands
-" 		Try to find a better $HOME than 'c:\' on Win 9x when VIM is
-" 		run from the file explorer...
+" TODO:         {{{
+" (*) Support menus, setlocal, commands
+" (*) Try to find a better $HOME than 'c:\' on Win 9x when VIM is run from the
+"     file explorer...
+" (*) Can't use <cr> in Trigger_Define(); e.g.:
+"      call Trigger_Define( '<M-w>', 
+"  	\ 'nnoremap <silent> <C-W> :call Window_CTRL_W()<cr>')
+"     won't work.
+" }}}
 "---------------------------------------------------------------------------
 " Defines the following functions: {{{
 " * Internal functions: [not for end user]
@@ -70,17 +81,23 @@ if exists('g:do_load_Triggers') || !exists('g:Triggers_loaded')
   let cpop = &cpoptions
   set cpoptions-=C
 "
-function! CheckDeps(func,file,path) " {{{
+function! CheckDeps(func,file,path,or) " {{{
   if !exists(a:func)
     if version < 600
-      exe 'so '.a:path.'/'.a:file
+      if filereadable(a:path.'/'.a:file)
+	exe 'so '.a:path.'/'.a:file
+      elseif (''!=a:or) && filereadable(a:path.'/'.a:or)
+	exe 'so '.a:path.'/'.a:or
+      endif
     else
-      exe 'runtime plugin/'.a:file.' macros/'.a:file
+      exe 'runtime plugin/'.a:file.' macros/'.a:file.
+	    \ ((''!=a:or) ? (' plugin/'.a:or.' macros/'.a:or) : '')
     endif
   endif
   if !exists(a:func)
     echohl ErrorMsg
-    echo "<Triggers.vim> needs '".a:func."()' defined in <".a:file.">"
+    echo "<Triggers.vim> needs '".a:func."()' defined in <".a:file.">".
+	    \ ((''!=a:or) ? ' or in <'.a:or.'>' : '')
     echo "   Please check for it on <http://hermitte.free.fr/vim/>\n"
     echohl None
     return 0
@@ -90,36 +107,14 @@ endfunction
 " }}}
 
 let s_path = expand('<sfile:p:h>')
-if !CheckDeps('*IsFileUpToDate', 'fileuptodate.vim', s_path)
-      \ || !CheckDeps('*EnsurePath', 'ensure_path.vim', s_path)
-      \ || !CheckDeps('*FixDname', 'fix_d_name.vim', s_path)
+if !CheckDeps('*IsFileUpToDate', 'fileuptodate.vim', s_path,'')
+      \ || !CheckDeps('*EnsurePath', 'ensure_path.vim', s_path,
+      \               'system_utils.vim')
+      \ || !CheckDeps('*FixPathName', 'fix_d_name.vim', s_path,
+      \               'system_utils.vim')
   finish
 endif
 
-if !exists('*IsFileUpToDate') " {{{
-  if version < 600
-    so <sfile>:p:h/fileuptodate.vim
-  else
-    runtime plugin/fileuptodate.vim macros/fileuptodate.vim
-  endif
-endif
-" }}}
-if !exists('*EnsurePath') " {{{
-  if version < 600
-    so <sfile>:p:h/ensure_path.vim
-  else
-    runtime plugin/ensure_path.vim macros/ensure_path.vim
-  endif
-endif
-" }}}
-if !exists('*FixDname') " {{{
-  if version < 600
-    so <sfile>:p:h/fix_d_name.vim
-  else
-    runtime plugin/fix_d_name.vim macros/fix_d_name.vim
-  endif
-endif
-" }}}
 if !exists(':Silent') " {{{
   if version < 600
     command! -nargs=+ -bang Silent exe "<args>"
@@ -176,28 +171,28 @@ function! Trigger_DoSwitch( ... )
     echohl None
     return
   endif
-  if a:0>=4
-    let l_verb = a:4
-    if a:0 >= 5
-      let l_exec = a:5
-    else
-      let l_exec = l_verb
+  if a:0>=4     | let l_verb = a:4
+    if a:0 >= 5 | let l_exec = a:5
+    else        | let l_exec = l_verb
     endif
   else 
     let l_verb = 0 | let l_exec = 0
   endif
 
+  let a1 = substitute( a:1, '<.\{-}>', '<c-v>\0', 1)
+  let a2 = substitute( a:2, '<.\{-}>', '<c-v>\0', 2)
+  let a3 = substitute( a:3, '<.\{-}>', '<c-v>\0', 3)
   if l_exec == 1
-    exe "noremap ".a:1." :call Trigger_DoSwitch('".a:1."','".
-	  \	a:3."','".a:2."',".l_verb.",1)<CR>"
+    exe "noremap ".a:1." :call Trigger_DoSwitch('".a1."','".
+	  \	a3."','".a2."',".l_verb.",1)<CR>"
     exe a:2
     if (l_verb==1) && exists("g:loaded_vimrc") 
       echo a:2
     endif
   else
     " delay the execution
-    exe "noremap ".a:1." :call Trigger_DoSwitch('".a:1."','".
-	  \	a:2."','".a:3."',".l_verb.",1)<CR>"
+    exe "noremap ".a:1." :call Trigger_DoSwitch('".a1."','".
+	  \	a2."','".a3."',".l_verb.",1)<CR>"
   endif
 endfunction
 " }}}
@@ -263,7 +258,7 @@ function! Trigger_BuildInv4Map_n_Abbr( ... )
   let p_abbrv = '\([ic]\=\(nore\)\=ab\(br\)\=\)'
   let p_map   = '\(!\=[nvoic]\=\(nore\)\=map\)'
   let p_name  = '\s\+\(\(\\ \|\S\)\+\)'
-  let p_buffer= '\(\s\+<buffer>\)\='
+  let p_buffer= '\%(\(\s\+<buffer>\)\|\s\+<silent>\)*'
   let pattern = '^\s*\('.p_abbrv.'\|'.p_map.'\)' . p_buffer.p_name . '\s\+.*$'
   if a:1 =~ '^\s*\(' . p_abbrv . '\|' . p_map . '\)\s\+'
     let cmd  = substitute( a:1, pattern, '\1', '' )
@@ -271,8 +266,8 @@ function! Trigger_BuildInv4Map_n_Abbr( ... )
     let ctx  = matchstr( ctx, '[nvoic]\=' )
     let buf  = substitute( a:1, pattern, '\7', '' )
     let name = buf . substitute( a:1, pattern, '\8', '' )
-    "let val  = substitute( a:1, pattern, '\10', '' )
-    "echo '- '. ctx . ' - ' . cmd . ' - ' . name . ' - ' . val . ' -'
+    " let val  = substitute( a:1, pattern, '\10', '' )
+    " echo '- '. ctx . ' - ' . cmd . ' - ' . name . ' - ' . val . ' -'
     " Map ----------------------------------------------------------------
     if cmd =~ p_map
       if (a:0==2)&&(a:2!=0)
@@ -403,8 +398,8 @@ function! Trigger_FileName(funcname)
   " call confirm('RT ='.$VIMRUNTIME, 'ok')
   if (version >= 600) " {{{
     let path = matchstr(
-	  \      FixDname(&runtimepath),
-	  \      substitute(FixDname(expand('$HOME')), '\\', '.', 'g')
+	  \      FixPathName(&runtimepath,1),
+	  \      substitute(FixPathName(expand('$HOME'),1), '\\', '.', 'g')
 	  \         .'.\(vimfiles\|\.vim\)',
 	  \    ) . '/.triggers/'
     " call confirm('pathv6 = '.path, 'ok')
@@ -436,7 +431,7 @@ endfunction
 " Function: Trigger_File(funcname, filename)				
 " 								<internal> {{{
 " {{{
-" Builds thafile containing all the opposite (undefinitions) macros than
+" Builds the file containing all the opposite (undefinitions) macros of
 " those defined in "funcname".
 " Note: This macro should be apply while editing the file containing the
 " function to transform. 
@@ -444,43 +439,61 @@ endfunction
 " Assumes: no function embeded, no group, etc
 " }}}
 function! Trigger_File(funcname,filename)
-  "1- Find the range of definition for a:funcname
-  exe 'normal gg'
+  "0- Change some settings
+  " Don't report changes for :substitute, there will be many of them.
+  let old_title = &title
+  let old_icon = &icon
+  let old_report = &report
+  let old_search = @/
+  let old_magic = &magic
+  set notitle noicon
+  set report=1000000
+  set magic
+  set modifiable
+
+  " 1- Load a:filename
+  %delete _
+  :exe '-1r '.a:filename
+  
+  "2- Extract a:funcname
+  exe 'normal! gg'
   "   and disable folding 
-  if version >= 600 | normal zn
+  if version >= 600 | normal! zn 
   endif
-  exe '/^\s*fu[nction]*!\=\s*' . a:funcname . '\s*()'
-  let b=line(".") 
-  exe '/^\s*endf'
-  let e=line(".") + 1
-  if line(".") < line("$") 
-    let eff = line("$") - line(".")
-    exe "normal j" . eff . "dd"
-    "exe "normal " .e . ',$g/.*/d' 
-  endif
-  exe '1,' . b .'g/.*/d'
-  "2- Apply Trigger_DoSwitch() on all the corresponding lines 
-  let p_set   = '\(set\)'
-  let p_abbrv = '\([ic]\=\(nore\)\=ab\(br\)\=\)'
+  exe '/^\s*fu\%[nction]!\=\s*' . a:funcname . '\s*()'
+  exe '1,'.line('.').'delete _'
+
+  exe '/^\s*endf\%[function]'
+  exe (line('.')+1).',$delete _'
+
+  "3- Apply Trigger_DoSwitch() on all the corresponding lines 
+  let p_set   = '\%(set\)'
+  let p_abbrv = '\([ic]\=\(nore\)\=ab\%[br]\=\)'
   let p_map   = '\(!\=[nvoic]\=\(nore\)\=map\)'
   let pattern = '^\s*\('.p_abbrv.'\|'.p_map.'\|'.p_set.'\)'
   exe 'g/'.pattern.'/ call setline(line("."),Trigger_BuildInv(getline(line(".")), 0))'
   let p_trig  = '^\(\s*TRIGGER\s*\)\([^,]*\)\s*,\s*\([^,]*\)'
   call append("$", "TRIGGER 1 , 2") " No warning about a pattern not found
   exe '%s/'.p_trig.'/\1\3, \2/'
-  exe $."normal dd" 
+  $delete _
   call append( "0", 'function! Switched_' . a:funcname . '()' )
-  "3- And wq!
-  " let filename = Trigger_FileName(a:funcname)
+
+  "4- And wq!
+  " Reindent
+  if (&indentexpr == 'GetVimIndent()') && exists('g:loaded_matchit')
+    normal =%
+  endif
+  " change fileformat to unix
   set ff=unix
-  if &verbose >=1 | call confirm('<'.a:filename.'> built', 'ok') | endif
-  " exe "w! " . a:filename | q
-  exe "Silent w! " . FixDname(a:filename) | bd
-  " if has("win32")
-    " exe "Silent w! " . escape(a:filename,'\') | bd
-  " else
-    " exe "Silent w! " . a:filename | bd
-  " endif
+  " save
+  exe "Silent w! " | bd
+
+  "5- Restore old settings
+  let &report = old_report
+  let &title = old_title
+  let &icon = old_icon
+  let &magic = old_magic
+  let @/ = old_search
 endfunction
 " }}}
 "---------------------------------------------------------------------------
@@ -541,23 +554,16 @@ function! Trigger_RebuildFile(funcname, fileassoc) " {{{
   ""let this     = $VIMRUNTIME . '/macros/Triggers.vim' 
   " -e -s => silent, no gvim
   let filename = Trigger_FileName(a:funcname)
-  let fa = FixDname(a:fileassoc)
-  " if has('win32')
-    """" let fa = escape(a:fileassoc, '\')
-    " let fa = a:fileassoc
-  " else
-    " let fa = a:fileassoc
-  " endif
-  exe 'Silent sp '.fa
-  call Trigger_File(a:funcname, filename)
-  " exe "so " . filename
+  exe 'Silent sp '.filename
+  call Trigger_File(a:funcname, FixPathName(a:fileassoc))
+  if &verbose >=1 | call confirm('<'.filename.'> built', 'ok') | endif
 endfunction
 " }}}
 "---------------------------------------------------------------------------
 "---------------------------------------------------------------------------
 "---------------------------------------------------------------------------
 " Avoid reinclusion
-  let &cpoptions = cpop
+let &cpoptions = cpop
 endif
 "===========================================================================
 " vim600: set fdm=marker:
