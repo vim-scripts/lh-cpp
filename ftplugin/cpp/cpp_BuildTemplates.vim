@@ -3,7 +3,7 @@
 " Author:		Luc Hermitte <MAIL:hermitte@free.fr>
 " 			<URL:http://hermitte.free.fr/vim/>
 "
-" Last Update:		09th jul 2002
+" Last Update:		11th jul 2002
 "
 " Dependencies:		a.vim (Alternate files)
 " 			VIM >= 6.00 only
@@ -16,6 +16,10 @@
 " ========================================================================
 if exists("b:loaded_cpp_BuildTemplates_local_settings") | finish | endif
 let b:loaded_cpp_BuildTemplates_local_settings = 1
+
+  "" line continuation used here ??
+  let s:cpo_save = &cpo
+  set cpo&vim
 
 " ------------------------------------------------------------------------
 " Commands {{{
@@ -84,7 +88,10 @@ inoremap <buffer> //@{ <c-R>=MapNoContext('//@{',
 " ========================================================================
 " General Definitions {{{
 " ========================================================================
-if exists("g:loaded_cpp_BuildTemplates_vim") | finish | endif
+if exists("g:loaded_cpp_BuildTemplates_vim") 
+  let &cpo = s:cpo_save
+  finish 
+endif
 let g:loaded_cpp_BuildTemplates_vim = 1
 
 let s:header_includes_text = 'Includes'
@@ -424,4 +431,7 @@ function! Cpp_ReachInlinePart(class)
   call s:AddInlinePart(a:class, 1-i)
 endfunction
 " }}}
+" =========================================================================
+  let &cpo = s:cpo_save
+" =========================================================================
 " vim60: set fdm=marker:

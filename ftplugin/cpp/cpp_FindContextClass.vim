@@ -20,6 +20,10 @@ if exists("g:loaded_cpp_FindContextClass_vim")
   finish
 endif
 let g:loaded_cpp_FindContextClass_vim = 1
+  "" line continuation used here ??
+  let s:cpo_save = &cpo
+  set cpo&vim
+
 
 "
 " ==========================================================================
@@ -45,5 +49,6 @@ function! Cpp_SearchClassDefinition(lineNo)
   return substitute (class, '^:\+', '', 'g')
 endfunction
 " }}}
+  let &cpo = s:cpo_save
 " ========================================================================
 " vim60: set fdm=marker:

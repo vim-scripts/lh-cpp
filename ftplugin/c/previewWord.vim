@@ -6,7 +6,7 @@
 " 		<URL:http://hermitte.free.fr/vim>
 " Version:	1
 " Created:	?
-" Last Update:	09th jul 2002
+" Last Update:	11th jul 2002
 "------------------------------------------------------------------------
 " Description:	«description» {{{
 " Have you ever tried to call a function which parameters you have forgotten? 
@@ -30,6 +30,10 @@
 if exists('b:loaded_ftplug_previewWord_vim') | finish | endif
 let b:loaded_ftplug_previewWord_vim = 1
 
+  "" line continuation used here ??
+  let s:cpo_save = &cpo
+  set cpo&vim
+
 "------------------------------------------------------------------------
 " Mappings {{{
 inoremap <buffer> <c-space> <C-o>:call <sid>PreviewWord()<CR>
@@ -42,7 +46,7 @@ inoremap <buffer> <c-F10> <c-o>:call <sid>ClosePreviewWindow()<CR>
 " }}}
  
 " g:preview_if_hold {{{
-if !exists('g:preview_if_hold') | let g:preview_if_hold = 1 | endif
+if !exists('g:preview_if_hold') | let g:preview_if_hold = 0 | endif
 if !exists('*Trigger_Function')
   runtime plugin/Triggers.vim
 endif
@@ -57,7 +61,10 @@ au! CursorHold *.[ch] nested :call <sid>DoPreviewWord()
 " }}}
 "=============================================================================
 " Global definitions {{{
-if exists("g:loaded_previewWord_vim") | finish | endif
+if exists("g:loaded_previewWord_vim") 
+  let &cpo = s:cpo_save
+  finish 
+endif
 let g:loaded_previewWord_vim = 1
 
 setlocal previewheight=4
@@ -147,5 +154,6 @@ function! s:DoPreviewWord()
 endfunction
 " }}}
 " }}}
+  let &cpo = s:cpo_save
 "=============================================================================
 " vim600: set fdm=marker:

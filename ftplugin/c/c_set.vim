@@ -3,7 +3,7 @@
 " Author:		Luc Hermitte <MAIL:hermitte@free.fr>
 " 			<URL:http://hermitte.free.fr/vim/>
 "
-" Last Update:		09th jul 2002
+" Last Update:		11th jul 2002
 "
 " Purpose:		ftplugin for C (-like) programming
 "
@@ -19,13 +19,17 @@
 
 
 " ========================================================================
-" Buffer local definitions
+" Buffer local definitions {{{
 " ========================================================================
 if exists("b:loaded_local_c_settings") | finish | endif
 let b:loaded_local_c_settings = 1
 
+  "" line continuation used here ??
+  let s:cpo_save = &cpo
+  set cpo&vim
+
 " ------------------------------------------------------------------------
-" Options to set
+" Options to set {{{
 " ------------------------------------------------------------------------
 setlocal formatoptions=croql
 setlocal cindent
@@ -46,21 +50,27 @@ if !exists('maplocalleader')
   let maplocalleader = ','
 endif
 
+" }}}
 " ------------------------------------------------------------------------
-" Brackets & all
+" Brackets & all {{{
 " ------------------------------------------------------------------------
-let b:cb_parent  = 1
-let b:cb_bracket = 1
-let b:cb_acco    = 1
-let b:cb_quotes  = 2
-let b:cb_Dquotes = 1
-""so $VIMRUNTIME/settings/common_brackets.vim
-" Re-run brackets() in order to update the mappings regarding the different
-" options.
-call Brackets()
+if !exists('*Brackets')
+  runtime plugin/common_brackets.vim
+endif
+if exists('*Brackets')
+  let b:cb_parent  = 1
+  let b:cb_bracket = 1
+  let b:cb_acco    = 1
+  let b:cb_quotes  = 2
+  let b:cb_Dquotes = 1
+  " Re-run brackets() in order to update the mappings regarding the different
+  " options.
+  call Brackets()
+endif
 
+" }}}
 " ------------------------------------------------------------------------
-" File loading
+" File loading {{{
 " ------------------------------------------------------------------------
 "
 " Things on :A and :AS
@@ -81,8 +91,9 @@ if filereadable(expand("hints"))
 	\ so hints<CR>
 endif
 
+" }}}
 " ------------------------------------------------------------------------
-" C keywords 
+" C keywords {{{
 " ------------------------------------------------------------------------
 " Pre-processor
 "
@@ -97,14 +108,15 @@ endif
   iab  <buffer> #i    <C-R>=MapNoContext('#i ','\<esc\>0i#ifdef')<CR>
   iab  <buffer> #e    <C-R>=MapNoContext("#e ",'\<esc\>0i#endif')<CR>
 
+"}}}
 " ------------------------------------------------------------------------
-" Control structures
+" Control structures {{{
 " ------------------------------------------------------------------------
 "
 " --- if -----------------------------------------------------------------
 "--if    insert "if" statement
 "  inoremap <buffer> if<space> <C-R>=Def_Map("if ",
-  Iabbr <buffer> if <C-R>=Def_Map("if ",
+  Iabbr <buffer> if <C-R>=Def_Abbr("if ",
       \ '\<c-f\>if () {\<cr\>}\<esc\>?)\<cr\>i',
       \ '\<c-f\>if () {\<cr\>¡mark!\<cr\>}¡mark!\<esc\>?)\<cr\>i')<cr>
 "--,if    insert "if" statement
@@ -114,7 +126,7 @@ endif
       nmap <buffer> <LocalLeader>if V<LocalLeader>if
 
 "--elif  insert else clause of if statement with following if statement
-  Iabbr <buffer> elif <C-R>=Def_Map("elif ",
+  Iabbr <buffer> elif <C-R>=Def_Abbr("elif ",
       \ '\<c-f\>else if () {\<cr\>}\<esc\>?)\<cr\>i',
       \ '\<c-f\>else if () {\<cr\>¡mark!\<cr\>}¡mark!\<esc\>?)\<cr\>i')<cr>
 "--,elif  insert else clause of if statement with following if statement
@@ -124,7 +136,7 @@ endif
       nmap <buffer> <LocalLeader>elif V<LocalLeader>elif
 
 "--else  insert else clause of if statement
-  Iabbr <buffer> else <C-R>=Def_Map("else ",
+  Iabbr <buffer> else <C-R>=Def_Abbr("else ",
       \ '\<c-f\>else {\<cr\>}\<esc\>O',
       \ '\<c-f\>else {\<cr\>}¡mark!\<esc\>O')<cr>
 "--,else  insert else clause of if statement
@@ -135,7 +147,7 @@ endif
 
 "--- for ----------------------------------------------------------------
 "--for   insert "for" statement
-  Iabbr <buffer> for <C-R>=Def_Map("for ",
+  Iabbr <buffer> for <C-R>=Def_Abbr("for ",
       \ '\<c-f\>for (;;) {\<cr\>}\<esc\>?(\<cr\>a',
       \ '\<c-f\>for (;¡mark!;¡mark!) {\<cr\>¡mark!\<cr\>}¡mark!\<esc\>?(\<CR\>a')<cr>
 "--,for   insert "for" statement
@@ -146,7 +158,7 @@ endif
 
 "--- while --------------------------------------------------------------
 "--while insert "while" statement
-  Iabbr <buffer> while <C-R>=Def_Map("while ",
+  Iabbr <buffer> while <C-R>=Def_Abbr("while ",
       \ '\<c-f\>while () {\<cr\>}\<esc\>?(\<cr\>a',
       \ '\<c-f\>while () {\<cr\>¡mark!\<cr\>}¡mark!\<esc\>?(\<CR\>a')<cr>
 "--,while insert "while" statement
@@ -157,7 +169,7 @@ endif
 
 "--- switch -------------------------------------------------------------
 "--switch insert "switch" statement
-  Iabbr <buffer> switch <C-R>=Def_Map("switch ",
+  Iabbr <buffer> switch <C-R>=Def_Abbr("switch ",
       \ '\<c-f\>switch () {\<cr\>}\<esc\>?(\<cr\>a',
       \ '\<c-f\>switch () {\<cr\>¡mark!\<cr\>}¡mark!\<esc\>?(\<CR\>a')<cr>
 "--,switch insert "switch" statement
@@ -185,7 +197,7 @@ endif
 "--/* insert /* <curseur>
 "             */
   if &syntax !~ "^\(cpp\|java\)$"
-    inoreab <buffer> /*  <c-r>=Def_Map('/*',
+    inoreab <buffer> /*  <c-r>=Def_Abbr('/*',
 	  \ '/*\<cr\>\<BS\>/\<up\>\<end\>',
 	  \ '/*\<cr\>\<BS\>/¡mark!\<up\>\<end\>')<cr>
   endif
@@ -196,20 +208,38 @@ endif
 "--/*= insert /*=====[  ]=======*/
   inoreab <buffer> /*0 0<c-d>/*<esc>75a=<esc>a*/<esc>45<left>R[
 
-
+"}}}
+"}}}
 " ========================================================================
-" General definitions
+" General definitions {{{
 " ========================================================================
-if exists("g:loaded_c_set_vim") | finish | endif
+if exists("g:loaded_c_set_vim") 
+  let &cpo = s:cpo_save
+  finish 
+endif
 let g:loaded_c_set_vim = 1
 
 " exported function !
 function! Def_Map(key,expr1,expr2)
   if exists('b:usemarks') && b:usemarks
     return "\<c-r>=MapNoContext2('".a:key."',BuildMapSeq('".a:expr2."'))\<cr>"
-"    return "\<c-r>=MapNoContext2('".a:key."',BuildMapSeq(\"".a:expr2."\"))\<cr>"
+    " return "\<c-r>=MapNoContext2('".a:key."',BuildMapSeq(\"".a:expr2."\"))\<cr>"
   else
     return "\<c-r>=MapNoContext2('".a:key."', '".a:expr1."')\<cr>"
-"    return "\<c-r>=MapNoContext2('".a:key."', \"".a:expr1."\")\<cr>"
+    " return "\<c-r>=MapNoContext2('".a:key."', \"".a:expr1."\")\<cr>"
   endif
 endfunction
+
+function! Def_Abbr(key,expr1,expr2)
+  if exists('b:usemarks') && b:usemarks
+    return "\<c-r>=MapNoContext('".a:key."',BuildMapSeq('".a:expr2."'))\<cr>"
+    " return "\<c-r>=MapNoContext('".a:key."',BuildMapSeq(\"".a:expr2."\"))\<cr>"
+  else
+    return "\<c-r>=MapNoContext('".a:key."', '".a:expr1."')\<cr>"
+    " return "\<c-r>=MapNoContext('".a:key."', \"".a:expr1."\")\<cr>"
+  endif
+endfunction
+  let &cpo = s:cpo_save
+" }}}
+"=============================================================================
+" vim600: set fdm=marker:

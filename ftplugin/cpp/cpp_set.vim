@@ -3,7 +3,7 @@
 " Author:		Luc Hermitte <MAIL:hermitte@free.fr>
 " 			<URL:http://hermitte.free.fr/vim/>
 "
-" Last Update:		09th jul 2002
+" Last Update:		11th jul 2002
 "
 " Purpose:		ftplugin for C++ programming
 "
@@ -26,6 +26,9 @@
 if exists("b:loaded_local_cpp_settings") | finish | endif
 let b:loaded_local_cpp_settings = 1
 
+  "" line continuation used here ??
+  let s:cpo_save = &cpo
+  set cpo&vim
 
 " ------------------------------------------------------------------------
 " Commands
@@ -72,7 +75,7 @@ inoremap <buffer> <m-s> std::
 
 "--- try ----------------------------------------------------------------
 "--try insert "try" statement
-  Iabbr <buffer> try <C-R>=Def_Map("try ",
+  Iabbr <buffer> try <C-R>=Def_Abbr("try ",
 	\ '\<c-f\>try {\<cr\>} catch () {\<cr\>}\<up\>\<esc\>O',
 	\ '\<c-f\>try {\<cr\>} catch (¡mark!) {¡mark!\<cr\>}¡mark!\<esc\>'
 	\ .'?try\<cr\>o')<CR>
@@ -84,7 +87,7 @@ inoremap <buffer> <m-s> std::
 
 "--- catch --------------------------------------------------------------
 "--catch insert "catch" statement
-  Iabbr <buffer> catch <C-R>=Def_Map("catch ",
+  Iabbr <buffer> catch <C-R>=Def_Abbr("catch ",
 	\ '\<c-f\>catch () {\<cr\>}\<esc\>?(?\<cr\>a',
 	\ '\<c-f\>catch () {¡mark!\<cr\>}¡mark!\<esc\>?(\<cr\>a')<CR>
 
@@ -118,3 +121,4 @@ inoremap <c-x>be .<esc>%v%<left>o<right>y%%ibegin(),<esc>paend()<esc>a
 "if exists("g:loaded_cpp_set_vim") | finish | endif
 "let g:loaded_cpp_set_vim = 1
 
+  let &cpo = s:cpo_save

@@ -3,7 +3,7 @@
 " Author:		Luc Hermitte <MAIL:hermitte@free.fr>
 " 			<URL:http://hermitte.free.fr/vim/>
 "
-" Last Update:		09th jul 2002
+" Last Update:		10th jul 2002
 "
 " Dependencies:		cpp_options.vim,
 " 			cpp_FindContextClass.vim,
@@ -27,6 +27,10 @@
 
 if exists("g:loaded_cpp_InsertAccessors_vim") | finish | endif
   let g:loaded_cpp_InsertAccessors_vim = 1
+  "
+  "" line continuation used here ??
+  let s:cpo_save = &cpo
+  set cpo&vim
 
 " ==========================================================================
 " VIM Includes {{{
@@ -271,5 +275,6 @@ function! Cpp_AddAttribute()
 endfunction
 " }}}
 " }}}
+  let &cpo = s:cpo_save
 " ========================================================================
 " vim60: set fdm=marker:

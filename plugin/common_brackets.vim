@@ -1,7 +1,9 @@
 " File:		common_brackets.vim
 " Author:	Luc Hermitte <MAIL:hermitte@free.fr>
 " 		<URL:http://hermitte.free.fr/vim/>
-" Last Update:	10th jul 2002
+" Last Update:	11th jul 2002
+" Version 3.6:  * accept default value for b:usemarks
+" Version 3.5:  * add continuation lines support ; cf 'cpoptions'
 " Version 3.4:	* Works correctly when editing several files (like with 
 " 		"vim foo1.x foo2.x").
 " 		* ')' and '}' don't search for the end of the bracket when we
@@ -65,8 +67,9 @@
 "===========================================================================
 "
 "======================================================================
-  let cpop = &cpoptions
-  set cpoptions-=C
+  "" line continuation used here ??
+  let s:cpo_save = &cpo
+  set cpo&vim
 
 " ------------------------------------------------------------------
 " The main function that defines all the key-bindings.
@@ -152,6 +155,7 @@ function! Brackets()
   endif
 endfunction
 
+if !exists('b:usemarks') | let b:usemarks=1 | endif
 " Defines a command and the mode switching mappings (with <F9>)
 if !exists("*Trigger_Function")
   runtime plugin/Triggers.vim
@@ -161,11 +165,13 @@ if exists("*Trigger_Function")
   let s:scriptname = expand("<sfile>:p")
 
   function! s:LoadBrackets()
+    if !exists('b:usemarks') | let b:usemarks=1 | endif
     if exists("b:loaded_comman_bracket_buff") | return | endif
     let b:loaded_comman_bracket_buff = 1
     silent call Trigger_Function('<F9>', 'Brackets', s:scriptname,1,1)
     imap <buffer> <F9> <SPACE><ESC><F9>a<BS>
-    silent call Trigger_DoSwitch('<M-F9>',':let b:usemarks=1',':let b:usemarks=0',1,1)
+    silent call Trigger_DoSwitch('<M-F9>',
+	  \ ':let b:usemarks='.b:usemarks,':let b:usemarks='.(1-b:usemarks),1,1)
     imap <buffer> <M-F9> <SPACE><ESC><M-F9>a<BS>
   endfunction
 endif
@@ -370,7 +376,7 @@ function! s:ToggleBackSlash()
 endfunction
  
 
-  let &cpoptions = cpop
+  let &cpo = s:cpo_save
 " ===========================================================================
 " Implementation and other remarks :
 " (*) Whitin the vnoremaps, `>ll at the end put the cursor at the

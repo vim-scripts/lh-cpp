@@ -20,15 +20,28 @@
 ¡s:ftplug ? "if exists('b:loaded_ftplug_". s:fn."') | finish | endif" : ""¡
 ¡s:ftplug ? "let b:loaded_ftplug_".s:fn." = 1" : "" ¡
 ¡s:ftplug ? '"' : "" ¡
+¡s:ftplug ? 'let s:cpo_save=&cpo' : "" ¡
+¡s:ftplug ? 'set cpo&vim' : "" ¡
+¡s:ftplug ? '"' : "" ¡
 ¿if s:ftplug | exe "normal a\"\r\<esc>73a-\<esc>D" | endif ¿
 ¡s:ftplug ? '"' : "" ¡
 ¡s:ftplug ? "«Buffer relative definitions»" : "" ¡
 ¡s:ftplug ? " " : "" ¡
 " 
 ¿if s:ftplug | exe "normal a\"\r\<esc>78a=\<esc>D" | endif ¿
-if exists("g:loaded_¡s:fn¡") | finish | endif
+if exists("g:loaded_¡s:fn¡") 
+¡s:ftplug ? "  let &cpo=s:cpo_save" : "" ¡
+  finish 
+endif
 let g:loaded_¡s:fn¡ = 1
+¡!s:ftplug ? 'let s:cpo_save=&cpo' : "" ¡
+¡!s:ftplug ? 'set cpo&vim' : "" ¡
 "
 "------------------------------------------------------------------------
 "
 «Global definitions -- like functions»
+
+"------------------------------------------------------------------------
+let &cpo=s:cpo_save
+"=============================================================================
+" vim600: set fdm=marker:

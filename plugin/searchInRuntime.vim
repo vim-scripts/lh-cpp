@@ -1,13 +1,15 @@
 " File:		searchInRuntime.vim 
 " Author:	Luc Hermitte <EMAIL:hermitte@free.fr>
 " 		<URL:http://hermitte.free.fr/vim>
-" Last Update:  04th apr 2002
-" Version:	1.1
+" Last Update:  10th jul 2002
+" Version:	1.2
 "
 " Purpose:	Search a file in the runtime path, $PATH, or any other
 "               environment variable, and execute an Ex command on it.
 " History: {{{
-"	Version 1.1
+"	Version 1.2:
+"	(*) add continuation lines support ; cf 'cpoptions'
+"	Version 1.1:
 "	(*) Support the '&verbose' option :
 "	     >= 0 -> display 'no file found'.
 "	     >= 2 -> display the list of files found.
@@ -37,6 +39,11 @@
 
 if exists("g:searchInRuntime_vim") | finish | endif
 let g:searchInRuntime_vim = 1
+"
+"" line continuation used here ??
+let s:cpo_save = &cpo
+set cpo&vim
+
 
 " ========================================================================
 " Commands {{{
@@ -143,5 +150,6 @@ function! s:SearchInENV(bang, env, cmd, ...) "{{{
 endfunction "}}}
 
 " }}}
+let &cpo = s:cpo_save
 " ========================================================================
 " vim60: set foldmethod=marker:
