@@ -1,10 +1,15 @@
+" Rem: the v1.06 fixed a vim57 issue : Silent wasn't working correctly
+"      the v1.08 fixed a vim6 issue : folded functions weren't parseable
+"      the v1.09 fixed the directory name used to store the files.
+"                      the filename resolution for win9x
+"                FixDname() has been moved to another file.
 "===========================================================================
 " Vim script file
 "
-" File:		Triggers.vim -- v1.05
-" Author:	Luc Hermitte <EMAIL:hermitte@free.fr>
+" File:		Triggers.vim -- v1.09
+" Author:	Luc Hermitte <EMAIL:hermitte at free.fr>
 " 		<URL:http://hermitte.free.fr/vim/>
-" Last Update:	10th jul 2002
+" Last Update:	28th aug 2002
 "
 " Purpose:	Help to map a sequence of keys to activate and desactivate
 " 		either a mapping, a setting or an abbreviation.
@@ -36,9 +41,11 @@
 "    }}}
 "
 " Inspiration:	buffoptions.vim
-" Deps:		fileuptodate.vim, ensure_path.vim
+" Deps:		fileuptodate.vim, ensure_path.vim, fix_d_name.vim
 "
 " TODO:		Support menus, setlocal, commands
+" 		Try to find a better $HOME than 'c:\' on Win 9x when VIM is
+" 		run from the file explorer...
 "---------------------------------------------------------------------------
 " Defines the following functions: {{{
 " * Internal functions: [not for end user]
@@ -58,16 +65,42 @@
 "
 "---------------------------------------------------------------------------
 " Avoid reinclusion
-if !exists('g:Triggers_loaded')
+if exists('g:do_load_Triggers') || !exists('g:Triggers_loaded')
   let g:Triggers_loaded = 1
   let cpop = &cpoptions
   set cpoptions-=C
 "
+function! CheckDeps(func,file,path) " {{{
+  if !exists(a:func)
+    if version < 600
+      exe 'so '.a:path.'/'.a:file
+    else
+      exe 'runtime plugin/'.a:file.' macros/'.a:file
+    endif
+  endif
+  if !exists(a:func)
+    echohl ErrorMsg
+    echo "<Triggers.vim> needs '".a:func."()' defined in <".a:file.">"
+    echo "   Please check for it on <http://hermitte.free.fr/vim/>\n"
+    echohl None
+    return 0
+  endif
+  return 1
+endfunction
+" }}}
+
+let s_path = expand('<sfile:p:h>')
+if !CheckDeps('*IsFileUpToDate', 'fileuptodate.vim', s_path)
+      \ || !CheckDeps('*EnsurePath', 'ensure_path.vim', s_path)
+      \ || !CheckDeps('*FixDname', 'fix_d_name.vim', s_path)
+  finish
+endif
+
 if !exists('*IsFileUpToDate') " {{{
   if version < 600
     so <sfile>:p:h/fileuptodate.vim
   else
-    runtime plugin/fileuptodate.vim
+    runtime plugin/fileuptodate.vim macros/fileuptodate.vim
   endif
 endif
 " }}}
@@ -75,7 +108,15 @@ if !exists('*EnsurePath') " {{{
   if version < 600
     so <sfile>:p:h/ensure_path.vim
   else
-    runtime plugin/ensure_path.vim
+    runtime plugin/ensure_path.vim macros/ensure_path.vim
+  endif
+endif
+" }}}
+if !exists('*FixDname') " {{{
+  if version < 600
+    so <sfile>:p:h/fix_d_name.vim
+  else
+    runtime plugin/fix_d_name.vim macros/fix_d_name.vim
   endif
 endif
 " }}}
@@ -108,7 +149,7 @@ endif
 " parameter while the single ones are inside in order to protect the constant 
 " parameters of echo.
 " }}}
-function TRIGGER(a, b)
+function! TRIGGER(a, b)
   exe a:a
 endfunction
 
@@ -127,7 +168,7 @@ command! TRIGGER call TRIGGER(<args>)
 " variable g:loaded_vimrc is defined. Hence, do *not* forget to set it at
 " the very end of your .vimrc.
 " }}}
-function Trigger_DoSwitch( ... )
+function! Trigger_DoSwitch( ... )
   if (a:0 < 3) || (a:0 > 5)
     echohl ErrorMsg
     echo "«Trigger_DoSwitch(keys, action, opposite [,verbose [,execute] ] )» ".
@@ -169,7 +210,7 @@ endfunction
 " The set format is the one accepted by vim, except that it authorizes white 
 " spaces after the affectation signs.
 " }}}
-function Trigger_BuildInv4Set( action )
+function! Trigger_BuildInv4Set( action )
   if a:action =~ '^\s*set\s\+'
     " purge <action> from the "set" string
     let sets = substitute( a:action, '^\s*set\s\+', '', '' )
@@ -212,7 +253,7 @@ endfunction
 "
 " If the format, we want at least 'map' or 'ab'
 " }}}
-function Trigger_BuildInv4Map_n_Abbr( ... )
+function! Trigger_BuildInv4Map_n_Abbr( ... )
   if (a:0==0) || (a:0>2)
     echohl ErrorMsg
     echo '«Trigger_BuildInv4Map_n_Abbr(action [,CheckOldValue])» : Incorect number of arguments...'
@@ -307,7 +348,7 @@ endfunction
 " May be the functions could be extended to supports mechanisms like \def
 " and \edef in TeX...
 " }}}
-function Trigger_BuildInv( ... )
+function! Trigger_BuildInv( ... )
   if (a:0==0) || (a:0>2)
     echohl ErrorMsg
     echo 'Trigger_BuildInv(action [,CheckOldValue]) : Incorect number of arguments...'
@@ -331,7 +372,7 @@ endfunction
 " 								<exported> {{{
 " Ex: Trigger_Define( '<F4>', 'set hlsearch' )
 "
-function Trigger_Define( ... )
+function! Trigger_Define( ... )
   if (a:0 < 2) || (a:0 > 3)
     echohl ErrorMsg
     echo '«Trigger_Define(keys, action [,verbose] )» '.
@@ -361,7 +402,11 @@ endfunction
 function! Trigger_FileName(funcname)
   " call confirm('RT ='.$VIMRUNTIME, 'ok')
   if (version >= 600) " {{{
-    let path = matchstr(&runtimepath,expand('$HOME').'/\(vimfiles\|\.vim\)') . '/.triggers/'
+    let path = matchstr(
+	  \      FixDname(&runtimepath),
+	  \      substitute(FixDname(expand('$HOME')), '\\', '.', 'g')
+	  \         .'.\(vimfiles\|\.vim\)',
+	  \    ) . '/.triggers/'
     " call confirm('pathv6 = '.path, 'ok')
     call EnsurePath(path)
     " }}}
@@ -398,9 +443,12 @@ endfunction
 " Called by: |Trigger_Function()|
 " Assumes: no function embeded, no group, etc
 " }}}
-function Trigger_File(funcname,filename)
+function! Trigger_File(funcname,filename)
   "1- Find the range of definition for a:funcname
   exe 'normal gg'
+  "   and disable folding 
+  if version >= 600 | normal zn
+  endif
   exe '/^\s*fu[nction]*!\=\s*' . a:funcname . '\s*()'
   let b=line(".") 
   exe '/^\s*endf'
@@ -427,7 +475,12 @@ function Trigger_File(funcname,filename)
   set ff=unix
   if &verbose >=1 | call confirm('<'.a:filename.'> built', 'ok') | endif
   " exe "w! " . a:filename | q
-  exe "Silent w! " . a:filename | bd
+  exe "Silent w! " . FixDname(a:filename) | bd
+  " if has("win32")
+    " exe "Silent w! " . escape(a:filename,'\') | bd
+  " else
+    " exe "Silent w! " . a:filename | bd
+  " endif
 endfunction
 " }}}
 "---------------------------------------------------------------------------
@@ -440,7 +493,7 @@ endfunction
 " <$VIMRUNTIME/.triggers/"funcname".switch>. If the file does not
 " exists, it is build thanks to Trigger_File().
 " }}}
-function Trigger_Function(...)
+function! Trigger_Function(...)
   if (a:0 < 3) || (a:0 > 5)
     echohl ErrorMsg
     echo "«Trigger_Function(keys, funcname, fileassoc [,verbose [,execute]])» ".
@@ -484,33 +537,23 @@ endfunction
 " }}}
 " let g:Triggers_this = expand("<sfile>:p")
 "---------------------------------------------------------------------------
-function Trigger_RebuildFile(funcname, fileassoc) " {{{
+function! Trigger_RebuildFile(funcname, fileassoc) " {{{
   ""let this     = $VIMRUNTIME . '/macros/Triggers.vim' 
   " -e -s => silent, no gvim
   let filename = Trigger_FileName(a:funcname)
-  " if has("unix")
-    " call system( "vim ".a:fileassoc." -e -s -R -u ". g:Triggers_this 
-	  " \		." -c \"call Trigger_File('".a:funcname."', '".filename."')\"")
-  " elseif has("win32")
-    " call system( "gvim ".a:fileassoc." -e -s -R -u ". g:Triggers_this 
-	  " \		." -c \"call Trigger_File('".a:funcname."', '".filename."')\"")
+  let fa = FixDname(a:fileassoc)
+  " if has('win32')
+    """" let fa = escape(a:fileassoc, '\')
+    " let fa = a:fileassoc
+  " else
+    " let fa = a:fileassoc
   " endif
-  exe 'Silent sp '.a:fileassoc
+  exe 'Silent sp '.fa
   call Trigger_File(a:funcname, filename)
-  " if v:shell_error
-    " if has('gui')
-      " call confirm("Can't execute vim with current environment...", 
-	    " \ '&Ok', 1, 'Error')
-    " else
-      " echohl ErrorMsg
-      " echo "Can't execute vim with current environment..."
-      " echohl None
-    " endif
-    " return
-  " endif
-  exe "so " . filename
+  " exe "so " . filename
 endfunction
 " }}}
+"---------------------------------------------------------------------------
 "---------------------------------------------------------------------------
 "---------------------------------------------------------------------------
 " Avoid reinclusion

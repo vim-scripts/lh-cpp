@@ -1,12 +1,14 @@
 " File:		searchInRuntime.vim 
-" Author:	Luc Hermitte <EMAIL:hermitte@free.fr>
+" Author:	Luc Hermitte <EMAIL:hermitte at free.fr>
 " 		<URL:http://hermitte.free.fr/vim>
-" Last Update:  10th jul 2002
-" Version:	1.2
+" Last Update:  21st jul 2002
+" Version:	1.2b
 "
 " Purpose:	Search a file in the runtime path, $PATH, or any other
 "               environment variable, and execute an Ex command on it.
 " History: {{{
+"	Version 1.2b:
+"	(*) address obfuscated for spammers
 "	Version 1.2:
 "	(*) add continuation lines support ; cf 'cpoptions'
 "	Version 1.1:

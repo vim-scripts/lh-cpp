@@ -1,9 +1,9 @@
 " ========================================================================
 " File:			cpp_BuildTemplates.vim
-" Author:		Luc Hermitte <MAIL:hermitte@free.fr>
+" Author:		Luc Hermitte <MAIL:hermitte at free.fr>
 " 			<URL:http://hermitte.free.fr/vim/>
 "
-" Last Update:		11th jul 2002
+" Last Update:		21st jul 2002
 "
 " Dependencies:		a.vim (Alternate files)
 " 			VIM >= 6.00 only

@@ -1,6 +1,14 @@
 " -*- vim -*-
 " FILE: "/home/joze/.vim/fold/c.vim"
-" LAST MODIFICATION: "Sun, 04 Nov 2001 15:54:28 +0100 (joze)"
+" LAST OFFICIAL MODIFICATION: "Sun, 04 Nov 2001 15:54:28 +0100 (joze)"
+" LAST MODIFICATION: 21st jul 2002 (lh <hermitte at free.fr>)
+"    (*) if 'b:show_if_and_else' is true, 'if {\n...\n} else {\n...\n}' are
+"        displayed in two folders ; and 'try ... catch' as well
+"    (*) support 'case' and 'default'
+"    (*) building of 'ts' fixed ; used to test '8 = &ts' instead of '8 == &ts'
+"    (*) heavily depends on indentation. For instance, tested ok with :
+"         &cindent = 1
+"         &cinoptions = g0,t0,h1s
 " (C) 2001 by Johannes Zellner, <johannes@zellner.org>
 " $Id: c.vim,v 1.8 2001/11/05 19:34:01 joze Exp $
 "
@@ -11,6 +19,11 @@
 setlocal foldexpr=CFold(v:lnum)
 setlocal foldtext=CFoldText()
 
+if !exists('b:show_if_and_else')
+  let b:show_if_and_else = 1
+endif
+
+" [-- global definitions --]
 if exists('*CFold')
     setlocal foldmethod=expr
     finish
@@ -38,31 +51,55 @@ fun! CFold(lnum)
 	    " let ind = (indent(lnum) / &sw)
 	    " exe 'return "<'.ind.'"'
 	    if lnum == a:lnum
-		return 's1'
+		let ind = (indent(lnum) / &sw)  + 1
+		" exe 'return '.ind
+		exe 'return "<'.ind.'"'
+		" return 's1'
 	    else
 		return '='
 	    endif
+	elseif line =~ '^\s*\(default\|case\s*\k\+\)\s*:\s*$'
+	    " cases for 'switch' statement
+	    " => new folder of fold level 'indent()+1'
+	    " return 'a1'
+	    let ind = (indent(lnum) / &sw) + 1
+	    exe 'return ">'.ind.'"'
 	elseif line =~ '[;:]\s*$' || line =~ '^\s*$'
-	    " lines ending with a ';', empty lines or labels -- keep folding level
+	    " lines ending with a ';', empty lines or labels => keep folding level
 	    " auch: return -1
 	    " oder: return '='
 	    " return ind
 	    return '='
 	elseif line =~ '{\s*$'
+	    " return 'a1'
 	    let ind = (indent(lnum) / &sw) + 1
-	    exe 'return '.ind
+	    if b:show_if_and_else && line =~ '^\s*}'
+	      " => new folder of fold level 'ind'
+	      exe 'return ">'.ind.'"'
+	    else
+	      " => folder of fold level 'indent()' (not necesseraly a new one)
+	      exe 'return '.ind
+	    endif
 	endif
 	let lnum = lnum + 1
     endwhile
 endfun
 
+function! s:Build_ts()
+  if !exists('s:ts_d') || (s:ts_d != &ts)
+    let s:ts = ''
+    let i = &ts
+    while i>0
+      let s:ts = s:ts . ' '
+      let i = i - 1
+    endwhile
+    let s:ts_d = &ts
+  endif
+  return s:ts
+endfunction
+
 fun! CFoldText()
-    if 8 = &ts
-	let ts = '        '
-    else
-	" assume 4 == ts
-	let ts = '    '
-    endif
+    let ts = s:Build_ts()
     let lnum = v:foldstart
     let lastline = line('$')
     if lastline - lnum > 5
@@ -80,6 +117,8 @@ fun! CFoldText()
 	let current = substitute(current, '{{{\d\=.*$', '', 'g')
 	let current = substitute(current, '\/\*.*\*\/', '', 'g')
 	if current =~ '{\s*$'
+	  " '  } else {'
+	    let current = substitute(current, '^\(\s*\)}\s*', '\1', 'g')
 	    let current = substitute(current, '{\s*$', '', 'g')
 	    let break = 1
 	else
@@ -95,7 +134,8 @@ fun! CFoldText()
 		    let leading = leading . ts
 		    let i = i - 1
 		endwhile
-		let current = leading . strpart(current, leading_tabs, 999999)
+		" let current = leading . strpart(current, leading_tabs, 999999)
+		let current = leading . strpart(current, leading_tabs)
 	    endif
 	else
 	    " remove leading white space

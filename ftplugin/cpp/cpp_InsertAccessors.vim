@@ -1,9 +1,9 @@
 " ========================================================================
 " File:			cpp_InsertAccessors.vim
-" Author:		Luc Hermitte <MAIL:hermitte@free.fr>
+" Author:		Luc Hermitte <MAIL:hermitte at free.fr>
 " 			<URL:http://hermitte.free.fr/vim/>
 "
-" Last Update:		10th jul 2002
+" Last Update:		09th oct 2002
 "
 " Dependencies:		cpp_options.vim,
 " 			cpp_FindContextClass.vim,
@@ -36,21 +36,29 @@ if exists("g:loaded_cpp_InsertAccessors_vim") | finish | endif
 " VIM Includes {{{
 " ==========================================================================
 " options {{{
-let g:do_load_cpp_options = 1
-if filereadable("./cpp_options.vim")
-  so ./cpp_options.vim
-" elseif filereadable("$VIM/ftplugin/cpp/cpp_options.vim")
-  " so $VIM/ftplugin/cpp/cpp_options.vim
-else 
-  " so <sfile>:p:h/cpp_options.vim
-  runtime ftplugin/cpp/cpp_options.vim
-endif
+let s:esc_pwd = ''
+function! s:CheckOptions()
+  " Todo: factorize and move this elsewhere
+  if s:esc_pwd != escape(getcwd(), '\')
+    let s:pwd = getcwd()
+    let s:esc_pwd = escape(s:pwd, '\')
+    let g:do_load_cpp_options = 1
+    if filereadable("./cpp_options.vim")
+      so ./cpp_options.vim
+      " elseif filereadable("$VIM/ftplugin/cpp/cpp_options.vim")
+      " so $VIM/ftplugin/cpp/cpp_options.vim
+    else 
+      " so <sfile>:p:h/cpp_options.vim
+      runtime ftplugin/cpp/cpp_options.vim
+    endif
+  endif
+endfunction
 " }}}
 " Dependencies {{{
 if !exists('*Cpp_SearchClassDefinition')
   runtime ftplugin/cpp/cpp_FindContextClass.vim
   if !exists('*Cpp_SearchClassDefinition')
-    if has('gui')
+    if has('gui_running')
       call confirm(
 	    \ '<cpp_InsertAccessors.vim> requires <cpp_FindContextClass.vim>',
 	    \ '&Ok', '1', 'Error')
@@ -69,13 +77,13 @@ endif
 "
   ""so <sfile>:p:h/cpp_FindContextClass.vim
 
-" Function:	ExtractPattern(str, pat) : str	{{{
+" Function:	s:ExtractPattern(str, pat) : str	{{{
 " Note:		Internal, used by IsBaseType
 function! s:ExtractPattern(expr, pattern)
   return substitute(a:expr, '^\s*\('. a:pattern .'\)\s*', '', 'g')
 endfunction
 " }}}
-" Function:	IsBaseType(typeName) : bool	{{{
+" Function:	s:IsBaseType(typeName) : bool	{{{
 " Note:		Do not test for aberrations like long float
 function! s:IsBaseType(type, pointerAsWell)
   let sign  = '\(unsigned\)\|\(signed\)'
@@ -93,7 +101,7 @@ function! s:IsBaseType(type, pointerAsWell)
   return strlen(expr) == 0
 endfunction
 " }}}
-" Function:	ConstCorrectType(type) : string	{{{
+" Function:	s:ConstCorrectType(type) : string	{{{
 " Purpose:	Returns the correct expression of the type regarding the
 " 		const-correctness issue ; cf Herb Sutter's
 " 		_Exceptional_C++_ - Item 43.
@@ -199,6 +207,8 @@ endfunction
 " 		g:setPrefix (default = "set_")
 " 		g:refPrefix (default = "ref_")
 function! Cpp_AddAttribute()
+  call s:CheckOptions()
+  " Todo: factorize and move this elsewhere
   " GUI : request name and type  {{{
   echo "--------------------------------------------"
   echo "Adding an attribute to the current class ..."

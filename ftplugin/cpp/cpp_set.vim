@@ -1,9 +1,9 @@
 " ========================================================================
 " File:			cpp_set.vim
-" Author:		Luc Hermitte <MAIL:hermitte@free.fr>
+" Author:		Luc Hermitte <MAIL:hermitte at free.fr>
 " 			<URL:http://hermitte.free.fr/vim/>
 "
-" Last Update:		11th jul 2002
+" Last Update:		21st jul 2002
 "
 " Purpose:		ftplugin for C++ programming
 "

@@ -1,6 +1,6 @@
 "------------------------------------------------------------------------
 "	Stephen Riehm's braketing macros for vim
-"	Customizations by Luc Hermitte	<hermitte@free.fr>
+"	Customizations by Luc Hermitte	<hermitte at free.fr>
 "
 "------------------------------------------------------------------------
 " Options:
@@ -22,6 +22,8 @@
 "
 "------------------------------------------------------------------------
 " History:
+"	Last Update: 21st jul 2002	by LH
+"		e-mail address obfuscated for spammers
 "	Last Update: 04th apr 2002	by LH
 "		Brkt_Mark takes an optional parameter : the text
 "	Last Update: 21st feb 2002	by LH

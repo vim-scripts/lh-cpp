@@ -2,11 +2,11 @@
 " File:		previewWord.vim
 " Author: 	Georgi Slavchev <EMAIL:goyko@gbg.bg>
 " 		From <URL:http://vim.sf.net>
-" 		Adapted by Luc Hermitte <EMAIL:hermitte@free.fr>
+" 		Adapted by Luc Hermitte <EMAIL:hermitte at free.fr>
 " 		<URL:http://hermitte.free.fr/vim>
-" Version:	1
+" Version:	1.0b
 " Created:	?
-" Last Update:	11th jul 2002
+" Last Update:	21st jul 2002
 "------------------------------------------------------------------------
 " Description:	«description» {{{
 " Have you ever tried to call a function which parameters you have forgotten? 

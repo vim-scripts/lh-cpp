@@ -1,9 +1,9 @@
 " ========================================================================
 " File:			c_set.vim
-" Author:		Luc Hermitte <MAIL:hermitte@free.fr>
+" Author:		Luc Hermitte <MAIL:hermitte at free.fr>
 " 			<URL:http://hermitte.free.fr/vim/>
 "
-" Last Update:		11th jul 2002
+" Last Update:		30th jul 2002
 "
 " Purpose:		ftplugin for C (-like) programming
 "
@@ -33,8 +33,10 @@ let b:loaded_local_c_settings = 1
 " ------------------------------------------------------------------------
 setlocal formatoptions=croql
 setlocal cindent
+setlocal define=^\(#\s*define\|[a-z]*\s*const\s*[a-z]*\)
 setlocal comments=sr:/*,mb:*,el:*/
 setlocal cinoptions=g0,t0
+setlocal isk+=#		" so #if is considered as a keyword, etc
 
 setlocal ch=2
 setlocal nosmd
@@ -50,6 +52,28 @@ if !exists('maplocalleader')
   let maplocalleader = ','
 endif
 
+" C Doc {{{
+if !exists('*s:SearchTeXDocFolder')
+  function! s:SearchTeXDocFolder(filename)
+    let f = substitute(fnamemodify(a:filename, ':p:h'), 
+	  \ '[\\/]doc[\\/]\=$', '','')
+    if &runtimepath !~ escape(f, '\')
+      " exe 'setlocal runtimepath+='.f
+      let &runtimepath=f.','.&runtimepath
+    endif
+  endfunction
+endif
+command! -buffer -nargs=1 SearchTeXDocFolder	
+      \ :call <SID>SearchTeXDocFolder(<q-args>)
+if exists(':SearchInRuntime')
+  SearchInRuntime! SearchTeXDocFolder ftplugin/c/doc/*.txt
+else
+  let f = glob(expand('<sfile>:p:h').'/doc/*.txt')
+  if strlen(f)
+    :SearchTeXDocFolder f
+  endif
+endif
+" C Doc }}}
 " }}}
 " ------------------------------------------------------------------------
 " Brackets & all {{{

@@ -1,9 +1,9 @@
 " ========================================================================
 " File:			cpp_FindContextClass.vim
-" Author:		Luc Hermitte <MAIL:hermitte@free.fr>
+" Author:		Luc Hermitte <MAIL:hermitte at free.fr>
 " 			<URL:http://hermitte.free.fr/vim/>
 "
-" Last Update:		08th jul 2002
+" Last Update:		21st jul 2002
 "
 " Dependencies:		VIM 6.0+
 

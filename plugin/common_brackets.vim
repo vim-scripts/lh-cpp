@@ -1,7 +1,13 @@
 " File:		common_brackets.vim
-" Author:	Luc Hermitte <MAIL:hermitte@free.fr>
+" Author:	Luc Hermitte <MAIL:hermitte at free.fr>
 " 		<URL:http://hermitte.free.fr/vim/>
-" Last Update:	11th jul 2002
+" Last Update:	02nd aug 2002
+" History:	{{{
+" Version 3.7:  * Brackets manipulation mappings for normal mode can be changed
+" 		  They are now <Plug> mappings.
+" 		  Same enhancement for mappings to ¡mark! and ¡jump!
+" Version 3.6c: * Change every 'normal' to 'normal!'
+" Version 3.6b: * address obfuscated for spammers
 " Version 3.6:  * accept default value for b:usemarks
 " Version 3.5:  * add continuation lines support ; cf 'cpoptions'
 " Version 3.4:	* Works correctly when editing several files (like with 
@@ -25,8 +31,10 @@
 " 		the ftplugins.
 " 		Note that I planned to use this file with my customized
 " 		version of Stephan Riehm's file.
+" 		}}}
 " 
-" Purpose:	This file defines a function (Brackets) that brings
+" Purpose:	{{{
+" 		This file defines a function (Brackets) that brings
 " 		together several macros dedicated to insert pairs of
 " 		caracters when the first one is typed. Typical examples are
 " 		the parenthesis, brackets, <,>, etc. 
@@ -41,38 +49,41 @@
 " 		BTW, they can be activated or desactivated by pressing <F9>
 " 		Rem.: exe "noremap" is not yet supported by Triggers.vim
 " 		Hence the trick with the intermediary functions.
+" 		}}}
 "
-" Options:	(*) b:cb_bracket	: [ -> [ & ]
-"		(*) b:cb_cmp		: < -> < & >
-"		    could be customized thanks to b:cb_ltFn and b:cb_gtFn
-"		    cf <ML.set>
-"		(*) b:cb_acco		: { -> { & }
-"		(*) b:cb_parent		: ( -> ( & )
-"		(*) b:cb_mathMode	: $ -> $ & $		[tex_set.vim]
-"		    type $$ in visual/normal mode
-"		(*) b:cb_quotes		: ' -> ' & '
-"			== 2  => non active within comment or strings
-"		(*) b:cb_Dquotes	: " -> " & "
-"		    could be customized thanks to b:cb_DqFn ;	[vim_set.vim]
-"			== 2  => non active within comment or strings
-"		(*) b:usemarks		: 
-"			indicates the wish to use the marking feature first
-"			defined by Stephan Riehm.
+" Options:	{{{
+" 	(*) b:cb_bracket			: [ -> [ & ]
+"	(*) b:cb_cmp				: < -> < & >
+"	    could be customized thanks to b:cb_ltFn and b:cb_gtFn [ML_set.vim]
+"	(*) b:cb_acco				: { -> { & }
+"	(*) b:cb_parent				: ( -> ( & )
+"	(*) b:cb_mathMode			: $ -> $ & $	[tex_set.vim]
+"	    type $$ in visual/normal mode
+"	(*) b:cb_quotes				: ' -> ' & '
+"		== 2  => non active within comment or strings
+"	(*) b:cb_Dquotes			: " -> " & "
+"	    could be customized thanks to b:cb_DqFn ;	[vim_set.vim]
+"		== 2  => non active within comment or strings
+"	(*) b:usemarks				: 
+"		indicates the wish to use the marking feature first defined by
+"		Stephan Riehm.
+"	}}}
 "
-" Dependancies:	Triggers.vim		(&fileuptodate.vim), (Not required)
-" 		misc_map.vim		(MapNoContext()),    (required)
-" 		bracketing.base.vim	(¡mark! & ¡jump!)    (required)
-" 		help.vim for vimrc_core.vim (:VimrcHelp)     (recognized and used.)
-" 		
+" Dependancies:	{{{
+" 	Triggers.vim		(&fileuptodate.vim), (Not required)
+" 	misc_map.vim		(MapNoContext()),    (required)
+" 	bracketing.base.vim	(¡mark! & ¡jump!)    (required)
+" 	help.vim for vimrc_core.vim (:VimrcHelp)     (recognized and used.)
+" 	}}}
 "===========================================================================
 "
 "======================================================================
-  "" line continuation used here ??
-  let s:cpo_save = &cpo
-  set cpo&vim
+" line continuation used here ??
+let s:cpo_save = &cpo
+set cpo&vim
 
 " ------------------------------------------------------------------
-" The main function that defines all the key-bindings.
+" The main function that defines all the key-bindings. " {{{
 function! Brackets()
   " [ & ]
   if exists('b:cb_bracket') && b:cb_bracket
@@ -153,10 +164,11 @@ function! Brackets()
 	" add doqutes around the word under the cursor
 	imap <buffer> <M-"> <esc><M-">a
   endif
-endfunction
+endfunction " }}}
 
 if !exists('b:usemarks') | let b:usemarks=1 | endif
-" Defines a command and the mode switching mappings (with <F9>)
+
+" Defines a command and the mode switching mappings (with <F9>) {{{
 if !exists("*Trigger_Function")
   runtime plugin/Triggers.vim
 endif
@@ -175,23 +187,48 @@ if exists("*Trigger_Function")
     imap <buffer> <M-F9> <SPACE><ESC><M-F9>a<BS>
   endfunction
 endif
-
+" }}}
 "======================================================================
-if exists("g:loaded_common_brackets_vim") | finish | endif
+" Global definitions : functions & mappings
+if exists("g:loaded_common_brackets_vim") 
+  let &cpo = s:cpo_save
+  finish 
+endif
 let g:loaded_common_brackets_vim = 1
 
-" Jump point macros
+" Jump point macros {{{
 " =================
 " (LH) As I use <del> a lot, I use different keys than those proposed by SR.
 "
-" Set a marker (the cursor is left between the marker characters)
-imap <M-Insert> ¡mark!<ESC>i
-vmap <M-Insert> ¡mark!
-" Jump to next marker
- map <M-Del> ¡jump!
-imap <M-Del> ¡jump!
+if version >= 600 " {{{
+  if !hasmapto('<Plug>¡mark!', 'v')
+    vmap <M-Insert> <Plug>¡mark!
+  endif
+  if !hasmapto('<Plug>¡mark!<ESC>i', 'i')
+    imap <M-Insert> <Plug>¡mark!
+  endif
+  if !hasmapto('<Plug>¡jump!', 'i')
+    imap <M-Del> <Plug>¡jump!
+  endif
+  if !hasmapto('<Plug>¡jump!')
+    map <M-Del> <Plug>¡jump!
+  endif
+  imap <Plug>¡mark! ¡mark!<ESC>i
+  vmap <Plug>¡mark! ¡mark!
+  map <Plug>¡jump! ¡jump!
+  imap <Plug>¡jump! ¡jump!
+  " }}}
+else "    vim 5.x {{{
+  " Set a marker (the cursor is left between the marker characters)
+  imap <M-Insert> ¡mark!<ESC>i
+  vmap <M-Insert> ¡mark!
+  " Jump to next marker
+  map <M-Del> ¡jump!
+  imap <M-Del> ¡jump!
+endif " }}}
+" }}}
 
-
+" Help stuff {{{
 if !exists(":VimrcHelp") 
   command! -nargs=1 VimrcHelp 
 endif
@@ -199,21 +236,22 @@ endif
 :VimrcHelp " 
 :VimrcHelp " <M-Insert>   : Inserts a marker                                   [I+V]
 :VimrcHelp " <M-Del>      : Jumps to a marker                                  [I+N+V]
-
+" }}}
 
 " ===========================================================================
+" Tool functions {{{
 " In order to define things like '{'
-function! s:Def_Map1(key,expr1,expr2)
+function! s:Def_Map1(key,expr1,expr2) " {{{
   if exists('b:usemarks') && b:usemarks
     return "\<c-r>=MapNoContext('".a:key."',BuildMapSeq('".a:expr2."'))\<cr>"
   else
     return "\<c-r>=MapNoContext('".a:key."', '".a:expr1."')\<cr>"
   endif
-endfunction
+endfunction " }}}
 
 " s:EscapableBrackets, and s:EscapableBracketsLn are two different functions
 " in order : little optimisation
-function! s:EscapableBrackets(key, left, right)
+function! s:EscapableBrackets(key, left, right) " {{{
   let r = ((getline('.')[col('.')-2] == '\') ? '\\\\' : "") . a:right
   let expr1 = a:left.r.'\<esc\>i'
   let expr2 = a:left.r.'¡mark!\<esc\>F'.a:key.'a'
@@ -222,9 +260,9 @@ function! s:EscapableBrackets(key, left, right)
   else
     return "\<c-r>=MapNoContext('".a:key."', '".expr1."')\<cr>"
   endif
-endfunction
+endfunction " }}}
 
-function! s:EscapableBracketsLn(key, left, right)
+function! s:EscapableBracketsLn(key, left, right) " {{{
   let r = ((getline('.')[col('.')-2] == '\') ? '\\\\' : "") . a:right
   let expr1 = a:left.'\<cr\>'.r.'\<esc\>O'
   let expr2 = a:left.'\<cr\>'.r.'¡mark!\<esc\>O'
@@ -233,41 +271,42 @@ function! s:EscapableBracketsLn(key, left, right)
   else
     return "\<c-r>=MapNoContext('".a:key."', '".expr1."')\<cr>"
   endif
-endfunction
-
+endfunction " }}}
+" Tool functions }}}
 " ===========================================================================
+" The core functions for the previous mappings {{{
 " If a backslash precede the current cursor position, insert one dollar,
 " and two otherwise.
-function! Insert_LaTeX_Dollar()
+function! Insert_LaTeX_Dollar() " {{{
   if getline('.')[col('.')-2] == '\'
     return '$'
   else
     return "\<c-v>$\<c-v>$\<c-r>=Brkt_Mark()\<cr>\<esc>F$i"
   endif
-endfunction
+endfunction " }}}
 
 " Trick : to be switchable with Triggers.vim
 " Calls a custom function or returns <> regarding the options
-function! Brkt_lt()
+function! Brkt_lt() " {{{
   if exists('b:cb_ltFn')
     return "\<C-R>=" . b:cb_ltFn . "\<CR>"
   else
     return <SID>EscapableBrackets('<', '\<C-V\><', '\<C-V\>>')
   endif
-endfunction
+endfunction " }}}
 
 " Trick : to be switchable with Triggers.vim
 " Calls a custom function, or search for the next '>', or return '>'
 " regarding the options.
-function! Brkt_gt()
+function! Brkt_gt() " {{{
   if exists('b:cb_gtFn')        | return "\<C-R>=" . b:cb_gtFn . "\<CR>"
   elseif exists('b:cb_gtFind')  | return "\<esc>/>/\<cr>a"
   else                          | return ">"
   endif
-endfunction
+endfunction " }}}
 
 " Centralize all the INSERT-mode mappings associated to quotes
-function! Brkt_quote()
+function! Brkt_quote() " {{{
   if b:cb_quotes == 2
     if exists("b:usemarks") && b:usemarks == 1
       return "\<c-r>=MapNoContext(\"'\", " .
@@ -282,10 +321,10 @@ function! Brkt_quote()
       return "''\<left>"
     endif
   endif
-endfunction
+endfunction " }}}
 
 " Centralize all the INSERT-mode mappings associated to double-quotes
-function! Brkt_Dquote()
+function! Brkt_Dquote() " {{{
   if b:cb_Dquotes == 2
     if exists("b:usemarks") && b:usemarks == 1
       return "\<c-r>=MapNoContext('\"', '" . '\"\"' . "'." . 
@@ -303,65 +342,93 @@ function! Brkt_Dquote()
       return "\"\"\<left>"
     endif
   endif
-endfunction
+endfunction " }}}
 
+" The core functions for the previous mappings }}}
 "======================================================================
 
-
 "======================================================================
-" Matching Brackets Macros, From AuCTeX.vim (due to Saul Lubkin).  
+" Matching Brackets Macros, From AuCTeX.vim (due to Saul Lubkin).   {{{
 " Except, that I use differently the chanching-brackets functions.
 " For normal mode.
 
-" Bindings for the Bracket Macros
-noremap <M-b>x		:call <SID>DeleteBrackets()<CR>
-noremap <M-b><Del>	:call <SID>DeleteBrackets()<CR>
-noremap <M-b>(		:call <SID>ChangeRound()<CR>
-noremap <M-b>[		:call <SID>ChangeSquare()<CR>
-noremap <M-b>{		:call <SID>ChangeCurly()<CR>
-noremap <M-b>\		:call <SID>ToggleBackSlash()<CR>
+" Bindings for the Bracket Macros {{{
+if !exists('g:cb_want_mode ') | let g:cb_want_mode = 1 | endif
+if g:cb_want_mode " {{{
+  if !hasmapto('BracketsManipMode')
+    noremap <silent> <M-b>	:call BracketsManipMode("\<M-b>")<cr>
+  endif
+  " }}}
+else " {{{
+  if !hasmapto('<Plug>DeleteBrackets')
+    map <M-b>x		<Plug>DeleteBrackets
+    map <M-b><Del>	<Plug>DeleteBrackets
+  endif
+  noremap <silent> <Plug>DeleteBrackets	:call <SID>DeleteBrackets()<CR>
+
+  if !hasmapto('<Plug>ChangeToRoundBrackets')
+    map <M-b>(		<Plug>ChangeToRoundBrackets
+  endif
+  noremap <silent> <Plug>ChangeToRoundBrackets	:call <SID>ChangeRound()<CR>
+
+  if !hasmapto('<Plug>ChangeToSquareBrackets')
+    map <M-b>[		<Plug>ChangeToSquareBrackets
+  endif
+  noremap <silent> <Plug>ChangeToSquareBrackets	:call <SID>ChangeSquare()<CR>
+
+  if !hasmapto('<Plug>ChangeToCurlyBrackets')
+    map <M-b>{		<Plug>ChangeToCurlyBrackets
+  endif
+  noremap <silent> <Plug>ChangeToCurlyBrackets	:call <SID>ChangeCurly()<CR>
+
+  if !hasmapto('<Plug>ToggleBackslash')
+    map <M-b>\		<Plug>ToggleBackslash
+  endif
+  noremap <silent> <Plug>ToggleBackslash	:call <SID>ToggleBackslash()<CR>
+endif " }}}
+" Bindings for the Bracket Macros }}}
 
 "inoremap <C-Del> :call <SID>DeleteBrackets()<CR>
 "inoremap <C-BS> <Left><C-O>:call <SID>DeleteBrackets()<CR>
 
-" Then the procedures.
-function! s:DeleteBrackets()
+" Then the procedures. {{{
+function! s:DeleteBrackets() " {{{
   let s:b = getline(line("."))[col(".") - 2]
   let s:c = getline(line("."))[col(".") - 1]
   if s:b == '\' && (s:c == '{' || s:c == '}')
-    normal X%X%
+    normal! X%X%
   endif
   if s:c == '{' || s:c == '[' || s:c == '('
-    normal %x``x
+    normal! %x``x
   elseif s:c == '}' || s:c == ']' || s:c == ')'
-    normal %%x``x``
+    normal! %%x``x``
   endif
-endfunction
+endfunction " }}}
 
-function! s:ChangeCurly()
+function! s:ChangeCurly() " {{{
   let s:c = getline(line("."))[col(".") - 1]
   if s:c == '[' || s:c == '('
     exe "normal! i\<Esc>l%i\<Esc>lr}``r{"
   elseif s:c == ']' || s:c == ')'
     exe "normal! %i\<Esc>l%i\<Esc>lr}``r{%"
   endif
-endfunction
+endfunction " }}}
 
-function! s:ChangeRound()
+function! s:ChangeRound() " {{{
   let s:c = getline(line("."))[col(".") - 1]
   if s:c =~ '[\|{'     | normal! %r)``r(
   elseif s:c =~ ']\|}' | normal! %%r)``r(%
   endif
-endfunction
+endfunction " }}}
 
-function! s:ChangeSquare()
+function! s:ChangeSquare() " {{{ " {{{
   let s:c = getline(line("."))[col(".") - 1]
   if s:c =~ '(\|{'     | normal! %r]``r[
   elseif s:c =~ ')\|}' | normal! %%r]``r[%
   endif
-endfunction
+endfunction " }}} " }}}
 
-function! s:ToggleBackSlash()
+function! s:ToggleBackslash() " {{{
   let s:b = getline(line("."))[col(".") - 2]
   let s:c = getline(line("."))[col(".") - 1]
   if s:b == '\'
@@ -373,12 +440,52 @@ function! s:ToggleBackSlash()
     elseif s:c =~ ')\|}\|]' | exe "normal! %%i\\\<esc>``i\\\<esc>%"
     endif
   endif
-endfunction
+endfunction " }}}
  
+function! BracketsManipMode(starting_key) " {{{
+  redraw! " clear the msg line
+  while 1
+    echohl StatusLineNC
+    echo "\r-- brackets manipulation mode (/x/(/[/{/\\/<F1>/q/)"
+    echohl None
+    let key = getchar()
+    let bracketsManip=nr2char(key)
+    if (-1 != stridx("x([{\\q",bracketsManip)) || 
+	  \ (key =~ "\\(\<F1>\\|\<Del>\\)")
+      if     bracketsManip == "x"      || key == "\<Del>" 
+	call s:DeleteBrackets() | redraw! | return ''
+      elseif bracketsManip == "("      | call s:ChangeRound()
+      elseif bracketsManip == "["      | call s:ChangeSquare()
+      elseif bracketsManip == "{"      | call s:ChangeCurly()
+      elseif bracketsManip == "\\"     | call s:ToggleBackslash()
+      elseif key == "\<F1>"
+	redraw! " clear the msg line
+	echo "\r *x* -- delete the current brackets pair\n"
+	echo " *(* -- change the current brackets pair to round brackets ()\n"
+	echo " *[* -- change the current brackets pair to square brackets []\n"
+	echo " *{* -- change the current brackets pair to curly brackets {}\n"
+	echo " *\\* -- toggle a backslash before the current brackets pair\n"
+	echo " *q* -- quit the mode\n"
+	continue
+      elseif bracketsManip == "q"
+	redraw! " clear the msg line
+	return ''
+      " else
+      endif
+      redraw! " clear the msg line
+    else
+      redraw! " clear the msg line
+      return a:starting_key.bracketsManip
+    endif
+  endwhile
+endfunction " }}}
+" Then the procedures. }}}
 
+" Matching Brackets Macros, From AuCTeX.vim (due to Saul Lubkin).   }}}
+" ===========================================================================
   let &cpo = s:cpo_save
 " ===========================================================================
-" Implementation and other remarks :
+" Implementation and other remarks : {{{
 " (*) Whitin the vnoremaps, `>ll at the end put the cursor at the
 "     previously last character of the selected area and slide left twice
 "     (ll) to compensate the addition of the sourrounding characters.
@@ -393,3 +500,6 @@ endfunction
 "
 " Todo:
 " (*) Systematically use b:usemarks for opening and closing
+" }}}
+" ===========================================================================
+" vim600: set fdm=marker:

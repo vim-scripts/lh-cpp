@@ -1,7 +1,7 @@
 " Vim File:	fileuptodate.vim
-" Author:	Luc Hermitte <EMAIL:hermitte@free.fr>
+" Author:	Luc Hermitte <EMAIL:hermitte at free.fr>
 " 		<URL:http://hermitte.free.fr/vim/>
-" Last Update:	13rd feb 2002
+" Last Update:	21st jul 2002
 "
 " Purpose:	Checks if a <file2> is more recent than <file1>
 " ==========================================================================

@@ -1,8 +1,8 @@
 " Author:	Gergely Kontra <kgergely@mcl.hu>
 " Last Official Version:	0.11
 "
-" Last Update:  09th jul 2002
-" Version:	0.22, by Luc Hermitte <hermitte@free.fr>
+" Last Update:  21st jul 2002
+" Version:	0.22, by Luc Hermitte <hermitte at free.fr>
 " 
 " Description:	Micro vim template file loader
 " Installation:	{{{
@@ -36,7 +36,7 @@
 "		}}}
 " History: {{{	0.1	Initial release
 "		0.11	- 'runtimepath' is searched for template files,
-"			Luc Hermitte <hermitte@free.fr>'s improvements
+"			Luc Hermitte <hermitte at free.fr>'s improvements
 "			- plugin => non reinclusion
 "			- A little installation comment
 "			- change 'exe "norm \<c-j>"' to 'norm ¡jump!' + startinsert

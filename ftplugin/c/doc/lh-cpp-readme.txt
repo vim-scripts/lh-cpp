@@ -1,5 +1,5 @@
 # VIM: let g:VS_language = 'american' 
-*lh-cpp-readme.txt*	For Vim version 6.0+	Last change: 11th jul 2002
+*lh-cpp-readme.txt*	For Vim version 6.0+	Last change: 08th oct 2002
 
 		C & C++ ftplugins short presentation	by Luc Hermitte
 
@@ -95,7 +95,7 @@ Features~
      abbr: virt	virtual						*C_virt*
      imap: <M-s>	std::					*Ci_META-s*
  
-     imap: <c-x>be	duplicates the text with parenthesis,	*Ci_CTRL-X_be*
+     imap: <c-x>be	duplicates the text within parenthesis,	*Ci_CTRL-X_be*
 		  add a comma between the two occurrences, and append
 		  '.begin()' and '.end()' to each.
      imap: /*<space>	/** */¡mark¡				*C++_comments*
@@ -115,8 +115,8 @@ Features~
 	:CLASS	{name}	    ;CL		Class declaration template
 	:BLINES	{name}	    ;BL		Inserts rulers
 	:GROUP	{name}	    ;GR		Inserts a Doc++ group
-	:MGROUP	{name}	    ;MGR	Inserts a doc++ group + a ruler
-	:ADDATTRIBUTE	    ;AA		(do it, the cursor on "private:"'s line)
+	:MGROUP	{name}	    ;MGR	Inserts a Doc++ group + a ruler
+	:ADDATTRIBUTE	    ;AA		(do it, cursor on the "private" line)
 	:REACHINLINE {name} ;RI		Reaches the place where inlines are
 					defined
     Notes:
@@ -124,6 +124,18 @@ Features~
 	* The ADDATTRIBUTE command (that inserts an attribute and accessors
 	  and mutators (getters and setters)) requires that some formating is
 	  respected -- you will certainly have to adapt it.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    					*C++_jump_implementation*
+    Jumping to functions' implementation~
+    Files:   cpp_FindContextClass & cpp_GotoFunctionImpl.vim
+    Help:    <http://hermitte.free.fr/vim/c.php3>
+    Options: cpp_options.vim
+
+    Commands:		Mappings to them:
+	:GIMPL	{options}   ;GI		Go to function's implementation from
+			    <C-W>i	function's prototype
+			    <C-X>i	[Insert mode default mapping]
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 								*mu-template*
@@ -181,7 +193,7 @@ Features~
     Notes:  
 	* Developed by Johannes Zellner
     	* To test and use them, drop them your ftplugin folders or look at
-	    cleaner solutions like the ones used by Johannes Zellner.
+	    cleaner solutions like the one used by Johannes Zellner.
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 			*search-in-directories-list* *search-in-runtimepath* 
@@ -209,7 +221,6 @@ Features~
 Files~
 $HOME/.vim/  (/$HOME/vimfiles/ ; cf. 'runtimepath')
 +-> doc/
-|   +-> |lh-cpp-readme.txt| : this file
 |   +-> |lh-map-tools.txt|  : more precise help regaring the |bracketing| system
 |        Don't forget to execute ':helptags $HOME/plugin/doc'
 |
@@ -217,18 +228,21 @@ $HOME/.vim/  (/$HOME/vimfiles/ ; cf. 'runtimepath')
 |   +-> c/
 |   |   +-> |c_set.vim|					required by cpp_set.vim
 |   |   +-> |previewWord.vim|				standalone
-|   |        Stolen from vim tips
-|   |        Can take advantage of |Triggers.vim|
+|   |   |    Stolen from vim tips
+|   |   |    Can take advantage of |Triggers.vim|
+|   |   +-> doc/
+|   |       +-> |lh-cpp-readme.txt| : this file
 |   +-> cpp/
 |       +-> |cpp_set.vim|					
 |       +-> cpp_FindContextClass.vim 			required by IA
 |       +-> cpp_options.vim				required by BT & IA
 |       +-> cpp_BuildTemplates.vim [BT]			required by IA
 |       +-> cpp_InsertAccessor.vim [IA]
+|       +-> cpp_GotoFunctionImpl.vim [GFi]
 |     
 +-> plugin/
 |   +-> |bracketing.base.vim|				supported
-|   |   | defines markers to inserts after brackets
+|   |   | defines markers to insert after brackets
 |   +---+-> |common_brackets.vim|			supported
 |   |        defines brackets mappings
 |   |
@@ -237,7 +251,9 @@ $HOME/.vim/  (/$HOME/vimfiles/ ; cf. 'runtimepath')
 |   +---+-> fileuptodate.vim				required by Triggers
 |   |   |   checks whether a file is more recent than another
 |   +---+-> ensurepath.vim				required by Triggers
-|   |       ensures a directory exists
+|   |   |   ensures a directory exists
+|   +---+-> fix_d_name.vim				required by Triggers
+|   |       changes a path name to respect the shell settings
 |   +-> a.vim						required by IA
 |   |     old version ; manipulates buffers and windows
 |   |
@@ -246,8 +262,11 @@ $HOME/.vim/  (/$HOME/vimfiles/ ; cf. 'runtimepath')
 |   |    defines all the functions used to implement the context aware
 |   |    mappings from c_set.vim and cpp_set.vim
 |   +-> |searchInRuntime.vim|				supported by mu-template
-|        extends :runtime to other commands
-|        used by mu-template 0.22 to correctly search in 'runtimepath'
+|   |    extends :runtime to other commands
+|   |    used by mu-template 0.22 to correctly search in 'runtimepath'
+|   +-> homeLikeVC++.vim				independant
+|	 toggles the position of the cursor when pressing <home>.
+|        behaves like VC++ does.
 |
 +-> after/plugin/
 |   +-> |mu-template.vim|(v0.22)			supported by IA
