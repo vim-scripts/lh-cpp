@@ -1,7 +1,7 @@
 " File:		misc_map.vim
 " Author:	Luc Hermitte <MAIL:hermitte@free.fr>
 " 		<URL:http://hermitte.free.fr/vim/>
-" Last Update:	09th jul 2002
+" Last Update:	10th jul 2002
 "
 " Purpose:	Several mapping oriented functions
 "
@@ -72,6 +72,8 @@
 " Avoid reinclusion
 if !exists('g:misc_map_loaded')
   let g:misc_map_loaded = 1
+  let cpop = &cpoptions
+  set cpoptions-=C
 "
 if !exists(':Silent') " {{{
   if version < 600
@@ -183,6 +185,7 @@ command -narg=+ Inoreabbr
 " }}}
 "---------------------------------------------------------------------------
 " Avoid reinclusion
+  let &cpoptions = cpop
 endif
 
 "===========================================================================

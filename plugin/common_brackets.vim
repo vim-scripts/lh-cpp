@@ -1,7 +1,7 @@
 " File:		common_brackets.vim
 " Author:	Luc Hermitte <MAIL:hermitte@free.fr>
 " 		<URL:http://hermitte.free.fr/vim/>
-" Last Update:	08th jul 2002
+" Last Update:	10th jul 2002
 " Version 3.4:	* Works correctly when editing several files (like with 
 " 		"vim foo1.x foo2.x").
 " 		* ')' and '}' don't search for the end of the bracket when we
@@ -65,6 +65,8 @@
 "===========================================================================
 "
 "======================================================================
+  let cpop = &cpoptions
+  set cpoptions-=C
 
 " ------------------------------------------------------------------
 " The main function that defines all the key-bindings.
@@ -368,6 +370,7 @@ function! s:ToggleBackSlash()
 endfunction
  
 
+  let &cpoptions = cpop
 " ===========================================================================
 " Implementation and other remarks :
 " (*) Whitin the vnoremaps, `>ll at the end put the cursor at the
