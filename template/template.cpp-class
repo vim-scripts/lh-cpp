@@ -1,0 +1,47 @@
+¿"" C++ Class Template, Luc Hermitte, 03rd jun 2002 ¿
+¿let s:clsname = inputdialog("class name ?")¿
+/*===========================================================================*/
+/*===============================[ Class ¡s:clsname¡ ]==============================*/
+/*===========================================================================*/
+class ¡s:clsname¡
+{
+/*-------------------------------[ Construction ]----------------------------*/
+    /** @name Construction
+     */
+    //@{
+public:
+    /* Argument-less constructor */
+    ¡s:clsname¡();
+    /* Copy constructor */
+    ¡s:clsname¡(const ¡s:clsname¡ & rhs);
+    /* Copy operator */
+    ¡s:clsname¡& operator=(const ¡s:clsname¡ & rhs);
+    /* Destructor */
+    virtual ~¡s:clsname¡();
+    //@}
+
+
+/*-------------------------------[ Public methods ]--------------------------*/
+    /** @name Public methods
+     */
+    //@{
+public:
+    //@}
+
+/*-------------------------------[ Internal methods ]------------------------*/
+    /** @name Internal methods
+     */
+    //@{
+protected:
+    //@}
+
+/*-------------------------------[ Data ]------------------------------------*/
+    /** @name Data
+     */
+    //@{
+private:
+    //@}
+
+/*-------------------------------[ End of class ]----------------------------*/
+};
+
